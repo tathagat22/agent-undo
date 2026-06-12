@@ -9,7 +9,6 @@
 
 use std::env;
 use std::io;
-use std::path::Path;
 use std::process::exit;
 use undo_core::{Row, Undo};
 
@@ -84,8 +83,11 @@ fn cmd_track(rest: &[String]) -> io::Result<()> {
         ));
     }
     let u = open()?;
+    let cwd = env::current_dir()?;
     for p in rest {
-        let eff = u.track(Path::new(p))?;
+        // Resolve relative to where the user actually is, not the project root.
+        let abs = cwd.join(p);
+        let eff = u.track(&abs)?;
         println!("\x1b[32m✓\x1b[0m tracking  {}", eff.describe());
     }
     Ok(())

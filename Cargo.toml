@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "crates/undo-core",
-    # "crates/undo-napi",  # added after core is green
+    "crates/undo-napi",
 ]
 
 [workspace.package]

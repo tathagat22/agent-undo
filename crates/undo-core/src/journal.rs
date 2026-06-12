@@ -51,7 +51,8 @@ pub struct RollbackReport {
 
 /// A handle on one project's undo history.
 pub struct Undo {
-    root: PathBuf, // the .undo dir
+    workdir: PathBuf, // the project root (parent of .undo)
+    root: PathBuf,    // the .undo dir
     store: Store,
 }
 
@@ -63,7 +64,20 @@ impl Undo {
     fn at(workdir: &Path) -> Undo {
         let root = workdir.join(Self::dir_name());
         let store = Store::new(root.join("objects"));
-        Undo { root, store }
+        Undo {
+            workdir: workdir.to_path_buf(),
+            root,
+            store,
+        }
+    }
+
+    /// Resolve a (possibly relative) path against this project's root.
+    fn resolve(&self, path: &Path) -> PathBuf {
+        if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            self.workdir.join(path)
+        }
     }
 
     /// Create a fresh `.undo` under `workdir`.
@@ -177,7 +191,7 @@ impl Undo {
     /// snapshotted (FileModify); not-yet-existing paths record a FileCreate.
     pub fn track(&self, path: &Path) -> io::Result<Effect> {
         let cp = self.ensure_checkpoint()?;
-        let abs = resolve(path)?;
+        let abs = self.resolve(path);
 
         // Don't double-capture the same path within the same checkpoint —
         // the first snapshot is the one we want to restore to.
@@ -340,14 +354,6 @@ fn now_millis() -> u64 {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_millis() as u64)
         .unwrap_or(0)
-}
-
-fn resolve(path: &Path) -> io::Result<PathBuf> {
-    if path.is_absolute() {
-        Ok(path.to_path_buf())
-    } else {
-        Ok(std::env::current_dir()?.join(path))
-    }
 }
 
 fn invalid_data(e: serde_json::Error) -> io::Error {

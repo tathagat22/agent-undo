@@ -17,7 +17,7 @@
     "claude"
   ],
   "bin": {
-    "undo": "dist/cli.js"
+    "undo-mcp": "dist/mcp.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,14 +32,15 @@
     "node": ">=18"
   },
   "scripts": {
+    "build:engine": "cd crates/undo-napi && napi build --platform --release",
     "build": "tsc",
-    "cli": "tsx src/cli.ts",
     "mcp": "tsx src/mcp.ts",
     "demo": "tsx demo/demo.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build:engine && npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0"
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -1,0 +1,18 @@
+[package]
+name = "undo-napi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "NAPI bridge exposing the undo-core engine to Node/TypeScript."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+undo-core = { path = "../undo-core" }
+napi = { version = "2", default-features = false, features = ["napi6"] }
+napi-derive = "2"
+serde_json.workspace = true
+
+[build-dependencies]
+napi-build = "2"
