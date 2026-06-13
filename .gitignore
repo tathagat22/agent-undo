@@ -20,3 +20,14 @@ dist
 # napi release staging (regenerated in CI)
 crates/undo-napi/npm/
 crates/undo-napi/artifacts/
+
+# internal / agent / meta docs — keep local, never commit (only public-facing md ships)
+RELEASING.md
+CLAUDE.md
+AGENTS.md
+AGENT.md
+.claude/
+.cursor/
+*.internal.md
+NOTES.md
+TODO.md

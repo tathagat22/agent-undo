@@ -17,7 +17,7 @@ import { compensate, renderCompensateResult } from "./compensate.js";
 import { stageEmail, releaseEmail, cancelEmail, listPending } from "./email.js";
 import { recordReversal } from "./reversals.js";
 
-const server = new McpServer({ name: "undo", version: "0.1.0" });
+const server = new McpServer({ name: "undo", version: "0.2.0" });
 
 const cwdSchema = {
   cwd: z

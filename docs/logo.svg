@@ -1,0 +1,16 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="undo logo">
+  <defs>
+    <linearGradient id="ug" x1="20" y1="16" x2="108" y2="114" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818CF8"/>
+      <stop offset="0.5" stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <!-- counterclockwise undo arrow -->
+  <g stroke="url(#ug)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M16 64a48 48 0 1 0 48-48 52 52 0 0 0-35.9 14.6L16 42.7"/>
+    <path d="M16 16v26.7h26.7"/>
+  </g>
+  <!-- the checkpoint you snap back to -->
+  <circle cx="64" cy="64" r="7.5" fill="url(#ug)"/>
+</svg>

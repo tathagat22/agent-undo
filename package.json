@@ -1,6 +1,6 @@
 {
   "name": "@agent-undo/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ctrl-Z for AI agents. A universal time machine that records every side effect an autonomous agent produces — file writes, shell commands, git state, HTTP mutations — and reverses them with one command.",
   "type": "module",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@agent-undo/engine": "0.1.0",
+    "@agent-undo/engine": "0.2.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "zod": "^3.23.8"
   },

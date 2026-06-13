@@ -1,89 +1,141 @@
-# undo — Ctrl-Z for AI agents
+<p align="center">
+  <img src="docs/banner.svg" alt="undo — Ctrl-Z for AI agents" width="620">
+</p>
 
-[![CI](https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml/badge.svg)](https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml"><img src="https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/@agent-undo/core"><img src="https://img.shields.io/npm/v/@agent-undo/core?label=npm&color=cb3837" alt="npm"></a>
+  <a href="https://crates.io/crates/undo-core"><img src="https://img.shields.io/crates/v/undo-core?label=crates.io&color=e6a141" alt="crates.io"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6366f1" alt="MIT"></a>
+  <a href="https://tathagat22.github.io/agent-undo/"><img src="https://img.shields.io/badge/docs-site-22d3ee" alt="docs"></a>
+</p>
 
-> When you let an AI agent loose on your machine, `undo` records **every change it makes to the real world** and lets you reverse all of it with one command.
+<p align="center"><b>When you let an AI agent loose on your machine, <code>undo</code> records every change it makes to the real world and lets you reverse all of it with one command.</b></p>
 
-The thing stopping people from running agents in full-auto isn't intelligence — it's **fear**. An agent edits 15 files, deletes a folder, runs a migration, fires off an API call. If it screws up, the files are *maybe* recoverable (if you committed to git) — but the deleted folder, the DB row, the sent email, the network call? **No undo exists anywhere.**
+---
+
+The thing stopping people from running agents in full-auto isn't intelligence — it's **fear**. An agent edits 15 files, deletes a folder, runs a migration, sends an email, fires off an API call. If it screws up, the files are *maybe* recoverable. The deleted folder, the DB row, the sent email, the network call? **No undo exists anywhere.**
 
 `undo` is that undo. Act freely, because everything is reversible.
 
-```
-$ undo checkpoint "before the agent runs"
-  ✓ checkpoint cp001
+```console
+$ undo watch                       # arm it — now any agent's changes are reversible
 
   ... agent wipes a secret, deletes auth.ts, dumps junk, POSTs a charge ...
 
-$ undo rollback
+$ undo diff                        # see exactly what it did
+$ undo rollback                    # rewind all of it
   ✓ rewound to cp001
-    ⟲ created  experimental.ts
-    ⟲ modified auth.ts
-    ⟲ modified config.ts
-    •  POST https://api.stripe.com/v1/charges (manual — compensating refund recorded)
 ```
-
-Two seconds later it's like it never happened.
-
----
 
 ## Works with any AI agent
 
-undo is **not tied to any model, vendor, or IDE.** Every agent — whatever it's built on — does one thing in common: it changes files on disk. undo meets it at whichever layer is most convenient, and the reversal is identical underneath:
+`undo` is **not tied to any model, vendor, or IDE.** Every agent does one thing in common — it changes files on disk — so undo meets it at whichever layer is convenient:
 
 | Your setup | Turn it on | Covers |
 |---|---|---|
-| **Anything** (Cursor, Copilot, Windsurf, Aider, custom scripts, even you) | `undo watch` | Snapshots, then watches the filesystem. Reversible no matter what made the change. |
+| **Anything** — Cursor, Copilot, Windsurf, Aider, custom scripts, even you | `undo watch` | Snapshots, then watches the filesystem. Reversible no matter what made the change. |
 | **Any CLI agent** | `undo run -- <agent-cmd>` | Wraps the command; snapshots first, reversible after. |
-| **Any MCP client** (Cursor, Claude, Windsurf, custom) | add the [MCP server](#use-it-with-an-mcp-client) | The agent calls `undo_checkpoint` / `undo_track` / `undo_rollback` itself. |
+| **Any MCP client** | add the [MCP server](#mcp-server) | The agent calls `undo_checkpoint` / `undo_track` / `undo_rollback` itself. |
 | **Claude Code** | `undo protect` | Native PreToolUse hook — auto-checkpoints every session, zero effort. |
 
-Then, whatever made the mess:
+## Install
+
+The **CLI** works on macOS, Linux, and Windows — no Node required:
 
 ```bash
-undo rollback     # rewind everything since the snapshot
-undo redo         # ...changed your mind
+cargo install undo-core            # via crates.io (installs the `undo` binary)
+brew install tathagat22/tap/undo   # via Homebrew
+curl -fsSL https://raw.githubusercontent.com/tathagat22/agent-undo/main/packaging/install.sh | sh
 ```
 
-### `undo watch` — the universal one
+The **MCP server** (for MCP clients like Cursor / Claude):
 
 ```bash
-undo watch
+npx -y @agent-undo/core
 ```
 
-Takes a baseline snapshot, then watches the project. Start it, point *any* agent at the folder, and everything it does is reversible — no integration, no cooperation, no model-specific anything. It skips noise (`node_modules`, `target`, `.git`), shows changes live, and stops on Ctrl-C.
+## What it reverses
 
-### `undo run` — wrap any command
+One consistent model — record a change with its inverse, replay the inverse on rollback — across every domain. Anything that touches the outside world is **dry-run gated**: undo shows you what it *would* do and never fires blindly.
+
+### 📁 Files — byte-perfect, crash-safe
+Create / modify / delete / directories / symlinks / permissions, all restored exactly. A content-addressed blob store means even large and binary files come back byte-for-byte. Plus **redo**, and **selective** per-file revert.
 
 ```bash
-undo run -- aider                      # or codex, or your own agent script
-undo run -- npm run risky-migration
+undo rollback              # rewind everything since the checkpoint
+undo revert src/auth.ts    # ...or just one file
+undo redo                  # ...changed your mind
 ```
 
-### `undo protect` — native Claude Code hook
+### 🔍 `undo diff` — review before you trust
+A PR-style view of exactly what the agent changed, built from undo's own before-snapshots:
 
-```bash
-undo protect      # installs a PreToolUse hook; undo unprotect removes it
+```diff
+ src/auth.ts  modified  +2 -2
+  -const KEY = "prod-secret"
+  +const KEY = ""
+ src/new.ts   new  +1 -0
+  +export const added = true
+ 2 file(s) changed, +3 -2
 ```
 
-The hook **never blocks or slows the agent** (exits immediately, always allows the tool) and auto-checkpoints before the agent's first action each session.
-
----
-
-## How it works
-
-Every action an agent takes becomes a journal entry that knows **how to reverse itself** — think *git + a flight recorder, but for side effects instead of just files*.
+### 🌐 Network calls — actually reversed
+When the agent records a mutation with a **compensator** (the request that reverses it), undo runs it:
 
 ```
-checkpoint "before refactor"
-  ├─ modified  src/auth.ts        → restore prior contents (byte-perfect)
-  ├─ created   src/session.ts     → delete it
-  ├─ deleted   legacy/old.ts      → recreate from snapshot
-  ├─ ran       npm run migrate    → audited
-  └─ POST      api.com/charges    → compensating DELETE recorded
+agent: POST /v1/charges          → records a refund as the compensator
+undo_compensate                  → preview: "WOULD send the refund"
+undo_compensate execute=true     → fires it, most-recent-first
 ```
 
-Prior file contents are captured into a git-style **content-addressed blob store** (`.undo/objects/`), so even large and binary files restore exactly. Rollback walks the effects since a checkpoint, applies each one's inverse in reverse order, and truncates the journal back to that point.
+### ✉️ Email — honest hold-and-release
+No tool can recall a *delivered* email — the recipient has a copy nothing can touch. So undo does the one honest thing that works: it **holds the email as a draft** that has gone nowhere.
+
+```
+undo_email_stage    to=… subject=… body=…   # held, NOT sent
+undo_email_cancel                            # delete the draft → it never existed
+undo_email_release                           # ...or actually deliver it
+```
+
+**Before release:** cancel is a true unsend. **After delivery:** it's gone, and undo says so plainly — the most it can do then is trash *your* copy. We don't pretend to reach into other people's inboxes.
+
+### ☁️ Cloud & databases — any tool
+undo doesn't hardcode AWS or Postgres. The agent records the **command that reverses** what it did, and undo runs it (dry-run gated):
+
+```
+undo_record_reversal  description="created S3 bucket assets-prod"  command="aws s3 rb s3://assets-prod --force"
+undo_record_reversal  description="ran migration 042"             command="psql $DB -f rollback_042.sql"
+undo_compensate execute=true
+```
+
+Works with **any** cloud, database, or CLI. (For DB `UPDATE`/`DELETE`, you record the inverse — undo runs what you give it.)
+
+## CLI
+
+```
+undo init                      set up undo in this directory
+undo checkpoint [label]        mark a point you can rewind to
+undo track <path>...           capture a path before the agent changes it
+undo status                    what's changed since the last checkpoint
+undo diff                      a PR-style diff of everything the agent changed
+undo rollback [checkpoint]     rewind everything since a checkpoint
+undo revert <path>             selectively undo just one file
+undo redo                      undo the last rollback
+undo watch                     snapshot + watch the filesystem (any agent)
+undo run -- <command>          snapshot, then run any command reversibly
+undo protect / unprotect       install / remove the Claude Code auto-capture hook
+```
+
+## MCP server
+
+Add to your MCP client's config (e.g. `.mcp.json`):
+
+```json
+{ "mcpServers": { "undo": { "command": "npx", "args": ["-y", "@agent-undo/core"] } } }
+```
+
+**16 tools:** `undo_init` · `undo_checkpoint` · `undo_track` · `undo_status` · `undo_diff` · `undo_log` · `undo_rollback` · `undo_revert` · `undo_redo` · `undo_record_http` · `undo_record_reversal` · `undo_compensate` · `undo_email_stage` · `undo_email_release` · `undo_email_cancel` · `undo_email_pending`
 
 ## Architecture
 
@@ -91,211 +143,28 @@ A polyglot system with a real native boundary:
 
 ```
 ┌─────────────────────────────┐
-│  TypeScript  (agent surface) │   MCP server  ·  programmatic API
-│     src/mcp.ts  ·  index.ts  │
-└──────────────┬──────────────┘
-               │  NAPI-RS (in-process, no subprocess)
-┌──────────────┴──────────────┐
-│  Rust  (the engine)          │   Effect · Journal · blob store · rollback
-│   crates/undo-core           │   + standalone `undo` CLI
-│   crates/undo-napi           │
+│  TypeScript  (agent surface) │   MCP server · compensation · email · reversals
+├─────────────────────────────┤   ↕ NAPI-RS (in-process, no subprocess)
+│  Rust  (the engine)          │   Effect · Journal · blob store · rollback · diff
+│   crates/undo-core           │   + the standalone `undo` CLI
 └─────────────────────────────┘
 ```
 
-- **Rust** owns the part that touches your filesystem and has to be fast and trustworthy.
-- **TypeScript** owns the agent-facing MCP server and ergonomics.
-- **NAPI-RS** bridges them in-process — TS calls Rust directly, no IPC.
-
-## Install
-
-**The CLI** — works on macOS, Linux, and Windows, no Node required:
-
-```bash
-# Prebuilt binary (no toolchain needed)
-curl -fsSL https://raw.githubusercontent.com/tathagat22/agent-undo/main/packaging/install.sh | sh
-
-# Or via Cargo
-cargo install undo-core            # installs the `undo` binary
-
-# Or via Homebrew
-brew install tathagat22/tap/undo
-```
-
-Windows users can grab the `.zip` from the [Releases](https://github.com/tathagat22/agent-undo/releases) page.
-
-**The MCP server** (for MCP clients like Cursor or Claude). Once published it's just:
-
-```bash
-npx -y @agent-undo/core         # runs the MCP server
-```
-
-Or build it from source today:
-
-```bash
-npm install && npm run build:engine && npm run build
-```
-
-> Distribution status: the release pipeline (prebuilt binaries + crates.io + npm prebuilds) is wired up in CI and triggers on a version tag — see [RELEASING.md](RELEASING.md). Until the first tagged release, install the CLI with `cargo install --path crates/undo-core` and run the MCP server from source.
-
-## Use it with an MCP client
-
-Any MCP-speaking client (Cursor, Claude Desktop/Code, Windsurf, or your own agent) can drive undo directly. Add it to that client's MCP config — e.g. `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "undo": {
-      "command": "node",
-      "args": ["/absolute/path/to/agent-undo/dist/mcp.js"]
-    }
-  }
-}
-```
-
-Then tell your agent: *"Before you start, checkpoint with undo and track every file you touch."* The agent calls `undo_checkpoint` and `undo_track` as it works; you call `undo_rollback` (or ask it to) if anything goes sideways. Prefer not to rely on the agent cooperating? Use `undo watch` instead — it captures everything regardless.
-
-### MCP tools
-
-| Tool | What it does |
-|---|---|
-| `undo_init` | Set up the time machine in a project |
-| `undo_checkpoint` | Mark a point you can rewind to |
-| `undo_track` | Capture files before the agent changes them |
-| `undo_record_http` | Log a network mutation + its compensating request |
-| `undo_status` | What's changed since the checkpoint |
-| `undo_log` | The full history |
-| `undo_rollback` | Rewind everything since a checkpoint |
-| `undo_redo` | Undo the last rollback |
-
-## CLI
-
-```
-undo init                      set up undo in this directory
-undo checkpoint [label]        mark a point you can rewind to
-undo track <path>...           capture a file before the agent changes it
-undo status                    what's changed since the last checkpoint
-undo log                       the full history
-undo rollback [checkpoint]     rewind everything since a checkpoint
-undo redo                      undo the last rollback
-
-undo watch                     snapshot + watch the filesystem (any agent, any tool)
-undo run -- <command>          snapshot, then run any command reversibly
-undo protect                   install the Claude Code auto-capture hook
-undo unprotect                 remove the hook
-```
+Rust owns the part that touches your filesystem and has to be fast and trustworthy; TypeScript owns the agent-facing surface; NAPI-RS bridges them in-process.
 
 ## Why you can trust it
 
-A universal undo is only worth anything if it's *correct under pressure*. The engine is built for that:
+A universal undo is only worth anything if it's correct under pressure:
 
-- **Crash-safe** — the journal and state are written with write-temp-then-rename (atomic on POSIX). A crash never leaves a half-written history.
-- **Rollback integrity** — if any single step of a rollback fails, the journal is left intact and the whole thing is safe to retry. It never reports success while leaving files unrestored.
-- **Whole directory trees** — `track` captures directories recursively; rollback restores deleted trees, and prunes files the agent *added* to a tracked folder.
-- **Byte-perfect fidelity** — file contents via a content-addressed store, plus unix permissions, the executable bit, and mtime. Symlinks are restored as links, never their targets.
-- **Concurrency-safe** — mutating operations take an exclusive lock, so an agent and a human (or a multi-agent fleet) can't corrupt the journal.
-- **Sandboxed** — refuses to touch anything outside the project root (no `../` traversal), refuses to capture its own `.undo`, and adds `.undo/` to `.gitignore` so snapshots of your secrets never get committed.
-- **Redo** — changed your mind? `undo redo` re-applies what a rollback reversed and re-extends the history so you can roll back again.
+- **Crash-safe** — journal/state written write-temp-then-rename (atomic on POSIX).
+- **Rollback integrity** — if any step fails, the journal is left intact and it's safe to retry; never reports success while leaving files unrestored.
+- **Concurrency-safe** — an exclusive lock, so an agent and a human can't corrupt the journal.
+- **Sandboxed** — refuses paths outside the project, never captures `.undo`, auto-gitignores snapshots so secrets aren't committed.
 
-This isn't asserted, it's tested: alongside unit tests for each property, a **property test** runs dozens of randomized mutation sequences each run and asserts the tree round-trips byte-for-byte, and a **concurrency test** hammers one journal from many threads and asserts no corruption or duplicate sequence numbers. The engine test suite runs in CI on **Linux, macOS, and Windows**.
+This is tested, not asserted: unit tests per property, a **property test** that runs dozens of randomized mutation sequences and asserts byte-for-byte round-trips, a **concurrency test** that hammers one journal from many threads, and Node suites that drive real HTTP/Gmail/command reversals against mock servers. The engine suite runs in CI on **Linux, macOS, and Windows**.
 
-> **Platform note:** the engine is verified on all three OSes. On Windows, content + structure + mtime restore exactly; unix permission bits and symlink fidelity are POSIX-only (they no-op rather than fail). The native NAPI/Node binding currently ships for Linux and macOS — Windows prebuilds are on the roadmap — but the CLI works everywhere.
-
-## Try the demo
-
-```bash
-npm run demo        # in-process Rust engine: agent trashes a project, one button restores it
-npm run mcp -- ...  # or run the MCP server on stdio
-npx tsx demo/mcp-smoke.ts   # drives the real MCP server through a full scenario
-```
-
-## Beyond files: reversing network calls
-
-This is the part git — and every file-only "undo" — cannot do. When an agent records a network mutation, it records a **compensator**: the request that reverses it. `undo` can then actually *run* it.
-
-```
-agent: POST https://api.stripe.com/v1/charges        (records: refund as compensator)
-
-undo_compensate                  # dry run — shows what WOULD be reversed
-undo_compensate execute=true     # fires the refund, most-recent-first
-```
-
-It's **dry-run by default** — network undo is powerful and one-way, so it never fires silently. The same model extends to any service whose actions have an inverse.
-
-## Email undo — exactly what it does (and doesn't)
-
-No tool can truly recall an email once it's been **delivered to someone else's inbox** — the recipient has a copy on their server that nothing you run can touch. Anyone claiming "unsend any email" is lying. So `undo` does the one honest thing that actually works: **it doesn't let the email leave in the first place, until you're sure.**
-
-**How it works — hold and release.** Instead of sending immediately, the agent's email becomes a **Gmail draft that has gone nowhere:**
-
-```
-undo_email_stage   to="boss@co.com" subject="I QUIT" body="..."   # held as a draft, NOT sent
-undo_email_cancel                                                  # delete the draft → it never existed
-undo_email_release                                                 # ...or actually deliver it
-```
-
-- **Before you release it:** `undo_email_cancel` deletes the draft. It was never delivered, the recipient never saw it — a **true unsend.** This is the real, demonstrable guarantee.
-- **After you release it (delivered):** it is **gone.** `undo` will be blunt about this. The most it can honestly do then is trash *your own* copy and/or send a retraction — the recipient still has theirs. That's damage control, and it's labelled as such, never dressed up as "recall."
-
-In short: undo gives the email a **hold window** in which it genuinely never happened. It does **not** pretend to reach into other people's inboxes. `undo` holds no Google credentials itself — it uses a `GMAIL_ACCESS_TOKEN` you supply.
-
-## Cloud, databases, and anything scriptable
-
-undo doesn't hardcode AWS, Postgres, or Terraform. Instead, when the agent does something to an external system, it records the **command that reverses it** — and undo runs that on compensate (dry-run gated, same as network undo):
-
-```
-undo_record_reversal  description="created S3 bucket assets-prod"  command="aws s3 rb s3://assets-prod --force"
-undo_record_reversal  description="ran migration 042"             command="psql $DB -f rollback_042.sql"
-
-undo_compensate                  # preview every teardown
-undo_compensate execute=true     # run them, most-recent-first
-```
-
-This works with **any** cloud, database, or CLI — not a hardcoded few. Honest caveat for databases: undo runs the inverse you record, so for `UPDATE`/`DELETE` you must capture the prior values to build that inverse. undo executes; it doesn't guess.
-
-## See exactly what the agent changed: `undo diff`
-
-Before you trust — or reverse — anything, *look*. `undo diff` is a PR-style review of everything the agent touched since the checkpoint, built from undo's own before-snapshots (no git required):
-
-```bash
-undo diff
-```
-```diff
- src/auth.ts  modified  +2 -2
-   @@ -1,2 +1,2 @@
-  -const KEY = "prod-secret"
-  -function login() {}
-  +const KEY = ""
-  +function login() { broken() }
-
- src/new.ts   new  +1 -0
-  +export const added = true
-
- 2 file(s) changed, +3 -2
-```
-
-This is the surface that makes undo legible to *everyone*, not just people who think in rollbacks — review first, then keep it, `undo revert` one file, or `undo rollback` the lot. Also available as the `undo_diff` MCP tool.
-
-## Selective undo
-
-Rollback is all-or-nothing; sometimes you want to keep most of what the agent did and reverse *one* thing:
-
-```bash
-undo revert src/config.ts        # restore just this file; leave everything else
-```
-
-## What's reversible today, and what's next
-
-**Today:** files / directories / symlinks / permissions (byte-perfect, crash-safe, with redo and **selective** per-file revert); **network calls** (compensators); **email** (hold-and-release true unsend); **cloud + databases + any CLI** (recorded reversal commands). All external reversals are dry-run gated.
-
-Plus **`undo diff`** to review it all first, **selective per-file revert**, and **redo**.
-
-**Roadmap:**
-
-- **Provider-pack sugar** — one-liner helpers that build the Stripe/GitHub/Gmail compensators for you
-- **Team control plane** — shared journals + org policy for agent fleets
-
-The novel core is the `Effect` abstraction: anything that can describe its own inverse plugs into the *same* journal and the *same* one-button rollback. Filesystem-only undo exists; **heterogeneous, cross-system undo does not.** That uniform reversibility layer is the point.
+> **Platform note:** the engine is verified on all three OSes. On Windows, content + structure + mtime restore exactly; unix permission bits and symlink fidelity are POSIX-only (they no-op rather than fail).
 
 ## License
 
-MIT
+MIT © Tathagat Maitray
