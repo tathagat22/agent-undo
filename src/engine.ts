@@ -28,8 +28,10 @@ export interface UndoEngine {
   logJson(workdir: string): string;
   /** Rewind everything since a checkpoint. Returns a JSON report. */
   rollback(workdir: string, target?: string | null): string;
+  /** Undo the last rollback. Returns a JSON `{ restored, failed }` report. */
+  redo(workdir: string): string;
 }
 
-const engine = require("../crates/undo-napi/index.js") as UndoEngine;
+const engine = require("@agent-undo/engine") as UndoEngine;
 
 export default engine;

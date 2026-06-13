@@ -29,11 +29,19 @@ pub fn checkpoint(workdir: String, label: String) -> napi::Result<String> {
     open(&workdir)?.checkpoint(&label).map_err(err)
 }
 
-/// Capture a file before the agent changes it. Returns a description.
+/// Capture a path (recursively, if a directory) before the agent changes it.
+/// Returns a newline-joined description of every effect recorded.
 #[napi]
 pub fn track(workdir: String, path: String) -> napi::Result<String> {
-    let effect = open(&workdir)?.track(Path::new(&path)).map_err(err)?;
-    Ok(effect.describe())
+    let effects = open(&workdir)?.track(Path::new(&path)).map_err(err)?;
+    if effects.is_empty() {
+        return Ok(format!("{path} (already tracked)"));
+    }
+    Ok(effects
+        .iter()
+        .map(|e| e.describe())
+        .collect::<Vec<_>>()
+        .join("\n"))
 }
 
 /// Record a network mutation with an optional compensating request.
@@ -81,9 +89,17 @@ pub fn log_json(workdir: String) -> napi::Result<String> {
 }
 
 /// Rewind everything since `target` (or the latest checkpoint). Returns a JSON
-/// `{ checkpoint, reverted, skipped }` report.
+/// `{ checkpoint, reverted, skipped, failed }` report. If `failed` is non-empty
+/// the journal was left intact and the rollback can be retried.
 #[napi]
 pub fn rollback(workdir: String, target: Option<String>) -> napi::Result<String> {
     let report = open(&workdir)?.rollback(target.as_deref()).map_err(err)?;
+    serde_json::to_string(&report).map_err(err)
+}
+
+/// Undo the last rollback. Returns a JSON `{ restored, failed }` report.
+#[napi]
+pub fn redo(workdir: String) -> napi::Result<String> {
+    let report = open(&workdir)?.redo().map_err(err)?;
     serde_json::to_string(&report).map_err(err)
 }

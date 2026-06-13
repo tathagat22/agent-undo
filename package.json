@@ -31,14 +31,19 @@
   "engines": {
     "node": ">=18"
   },
+  "workspaces": [
+    "crates/undo-napi"
+  ],
   "scripts": {
-    "build:engine": "cd crates/undo-napi && napi build --platform --release",
+    "build:engine": "npm run build --workspace @agent-undo/engine",
     "build": "tsc",
     "mcp": "tsx src/mcp.ts",
     "demo": "tsx demo/demo.ts",
+    "test": "tsx demo/mcp-smoke.ts",
     "prepublishOnly": "npm run build:engine && npm run build"
   },
   "dependencies": {
+    "@agent-undo/engine": "0.1.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "zod": "^3.23.8"
   },

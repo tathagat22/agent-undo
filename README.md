@@ -1,5 +1,8 @@
 # undo — Ctrl-Z for AI agents
 
+[![CI](https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml/badge.svg)](https://github.com/tathagat22/agent-undo/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > When you let an AI agent loose on your machine, `undo` records **every change it makes to the real world** and lets you reverse all of it with one command.
 
 The thing stopping people from running agents in full-auto isn't intelligence — it's **fear**. An agent edits 15 files, deletes a folder, runs a migration, fires off an API call. If it screws up, the files are *maybe* recoverable (if you committed to git) — but the deleted folder, the DB row, the sent email, the network call? **No undo exists anywhere.**
@@ -105,6 +108,7 @@ Then tell your agent: *"Before you start, checkpoint with undo and track every f
 | `undo_status` | What's changed since the checkpoint |
 | `undo_log` | The full history |
 | `undo_rollback` | Rewind everything since a checkpoint |
+| `undo_redo` | Undo the last rollback |
 
 ## CLI
 
@@ -115,7 +119,22 @@ undo track <path>...           capture a file before the agent changes it
 undo status                    what's changed since the last checkpoint
 undo log                       the full history
 undo rollback [checkpoint]     rewind everything since a checkpoint
+undo redo                      undo the last rollback
 ```
+
+## Why you can trust it
+
+A universal undo is only worth anything if it's *correct under pressure*. The engine is built for that:
+
+- **Crash-safe** — the journal and state are written with write-temp-then-rename (atomic on POSIX). A crash never leaves a half-written history.
+- **Rollback integrity** — if any single step of a rollback fails, the journal is left intact and the whole thing is safe to retry. It never reports success while leaving files unrestored.
+- **Whole directory trees** — `track` captures directories recursively; rollback restores deleted trees, and prunes files the agent *added* to a tracked folder.
+- **Byte-perfect fidelity** — file contents via a content-addressed store, plus unix permissions, the executable bit, and mtime. Symlinks are restored as links, never their targets.
+- **Concurrency-safe** — mutating operations take an exclusive lock, so an agent and a human (or a multi-agent fleet) can't corrupt the journal.
+- **Sandboxed** — refuses to touch anything outside the project root (no `../` traversal), refuses to capture its own `.undo`, and adds `.undo/` to `.gitignore` so snapshots of your secrets never get committed.
+- **Redo** — changed your mind? `undo redo` re-applies what a rollback reversed and re-extends the history so you can roll back again.
+
+This isn't asserted, it's tested: alongside unit tests for each property, a **property test** runs dozens of randomized mutation sequences each run and asserts the tree round-trips byte-for-byte, and a **concurrency test** hammers one journal from many threads and asserts no corruption or duplicate sequence numbers. CI runs the whole suite on Linux and macOS.
 
 ## Try the demo
 

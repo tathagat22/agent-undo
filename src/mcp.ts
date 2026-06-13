@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 // The `undo` MCP server — Ctrl-Z for AI agents.
 //
-// An agent checkpoints itself before acting, tracks each file it's about to
-// change, and records network mutations. If anything goes wrong, the human
-// (or the agent) calls undo_rollback and the world snaps back. Every tool here
-// is a thin shell over the in-process Rust engine.
+// An agent checkpoints itself before acting, tracks each path it's about to
+// change (files or whole directories), and records network mutations. If
+// anything goes wrong, the human (or the agent) calls undo_rollback and the
+// world snaps back — and undo_redo puts it back if they change their mind.
+//
+// Every handler is wrapped so an engine error becomes a structured MCP error
+// instead of crashing the server.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -20,20 +23,41 @@ const cwdSchema = {
     .describe("Project directory. Defaults to the server's working directory."),
 };
 const wd = (cwd?: string) => cwd ?? process.cwd();
-const text = (s: string) => ({ content: [{ type: "text" as const, text: s }] });
+const ok = (text: string) => ({ content: [{ type: "text" as const, text }] });
+const fail = (e: unknown) => ({
+  content: [
+    {
+      type: "text" as const,
+      text: `undo error: ${e instanceof Error ? e.message : String(e)}`,
+    },
+  ],
+  isError: true,
+});
+
+// Wrap a handler so any thrown engine error is returned as a structured MCP
+// error rather than taking down the server process.
+const guard =
+  <A>(fn: (args: A) => string) =>
+  async (args: A) => {
+    try {
+      return ok(fn(args));
+    } catch (e) {
+      return fail(e);
+    }
+  };
 
 server.registerTool(
   "undo_init",
   {
     title: "Initialize undo",
     description:
-      "Set up the undo time machine in a project directory. Run this once before checkpointing.",
+      "Set up the undo time machine in a project directory (and gitignore its snapshots). Run once before checkpointing.",
     inputSchema: cwdSchema,
   },
-  async ({ cwd }) => {
+  guard(({ cwd }) => {
     engine.init(wd(cwd));
-    return text(`Initialized undo in ${wd(cwd)}/.undo`);
-  },
+    return `Initialized undo in ${wd(cwd)}/.undo (added .undo/ to .gitignore)`;
+  }),
 );
 
 server.registerTool(
@@ -47,30 +71,31 @@ server.registerTool(
       label: z.string().describe("A short description, e.g. 'before refactor'."),
     },
   },
-  async ({ cwd, label }) => {
+  guard(({ cwd, label }) => {
     const id = engine.checkpoint(wd(cwd), label);
-    return text(`Checkpoint ${id} created: "${label}"`);
-  },
+    return `Checkpoint ${id} created: "${label}"`;
+  }),
 );
 
 server.registerTool(
   "undo_track",
   {
-    title: "Track a file before changing it",
+    title: "Track a path before changing it",
     description:
-      "Capture a file's current contents BEFORE you create, modify, or delete it. " +
-      "This is what makes the change reversible. Call it on every path you're about to touch.",
+      "Capture a file's (or whole directory's) current state BEFORE you create, modify, or delete it. " +
+      "This is what makes the change reversible. Call it on every path you're about to touch. " +
+      "Directories are captured recursively. Paths outside the project are refused.",
     inputSchema: {
       ...cwdSchema,
       paths: z
         .array(z.string())
-        .describe("Files you're about to change (relative or absolute paths)."),
+        .describe("Files or directories you're about to change (relative or absolute)."),
     },
   },
-  async ({ cwd, paths }) => {
-    const lines = paths.map((p) => "  " + engine.track(wd(cwd), p));
-    return text(`Tracking ${paths.length} file(s):\n${lines.join("\n")}`);
-  },
+  guard(({ cwd, paths }) => {
+    const lines = paths.map((p) => "  " + engine.track(wd(cwd), p).replace(/\n/g, "\n  "));
+    return `Tracking ${paths.length} path(s):\n${lines.join("\n")}`;
+  }),
 );
 
 server.registerTool(
@@ -89,7 +114,7 @@ server.registerTool(
       compensatorBody: z.string().optional().describe("Body of the reversing request."),
     },
   },
-  async ({ cwd, method, url, compensatorMethod, compensatorUrl, compensatorBody }) => {
+  guard(({ cwd, method, url, compensatorMethod, compensatorUrl, compensatorBody }) => {
     engine.recordHttp(
       wd(cwd),
       method,
@@ -98,8 +123,8 @@ server.registerTool(
       compensatorUrl ?? null,
       compensatorBody ?? null,
     );
-    return text(`Recorded ${method} ${url}`);
-  },
+    return `Recorded ${method} ${url}`;
+  }),
 );
 
 server.registerTool(
@@ -109,18 +134,17 @@ server.registerTool(
     description: "Show every effect recorded since the most recent checkpoint.",
     inputSchema: cwdSchema,
   },
-  async ({ cwd }) => {
+  guard(({ cwd }) => {
     const status = JSON.parse(engine.statusJson(wd(cwd)));
-    if (!status.checkpoint) return text("No checkpoint yet. Call undo_checkpoint first.");
+    if (!status.checkpoint) return "No checkpoint yet. Call undo_checkpoint first.";
     const [id, label] = status.checkpoint;
     const effects: string[] = (status.effects ?? []).map(describeEffect);
-    if (effects.length === 0)
-      return text(`On checkpoint ${id} ("${label}"). Nothing recorded yet.`);
-    return text(
+    if (effects.length === 0) return `On checkpoint ${id} ("${label}"). Nothing recorded yet.`;
+    return (
       `On checkpoint ${id} ("${label}"). ${effects.length} change(s):\n` +
-        effects.map((e) => "  " + e).join("\n"),
+      effects.map((e) => "  " + e).join("\n")
     );
-  },
+  }),
 );
 
 server.registerTool(
@@ -130,16 +154,15 @@ server.registerTool(
     description: "List every checkpoint and effect in order.",
     inputSchema: cwdSchema,
   },
-  async ({ cwd }) => {
+  guard(({ cwd }) => {
     const rows = JSON.parse(engine.logJson(wd(cwd))) as any[];
-    if (rows.length === 0) return text("History is empty.");
-    const out = rows.map((r) =>
-      r.type === "checkpoint"
-        ? `● ${r.id}  "${r.label}"`
-        : "    " + describeEffect(r.effect),
-    );
-    return text(out.join("\n"));
-  },
+    if (rows.length === 0) return "History is empty.";
+    return rows
+      .map((r) =>
+        r.type === "checkpoint" ? `● ${r.id}  "${r.label}"` : "    " + describeEffect(r.effect),
+      )
+      .join("\n");
+  }),
 );
 
 server.registerTool(
@@ -148,7 +171,9 @@ server.registerTool(
     title: "Rewind everything",
     description:
       "Reverse every change made since a checkpoint (the latest one by default). " +
-      "Files are restored byte-for-byte; network/shell effects are listed for manual handling.",
+      "Files, directories, and symlinks are restored exactly; network/shell effects are listed " +
+      "for manual handling. If any step fails, the journal is left intact so you can safely retry. " +
+      "Use undo_redo to reverse a rollback.",
     inputSchema: {
       ...cwdSchema,
       checkpoint: z
@@ -157,24 +182,51 @@ server.registerTool(
         .describe("Checkpoint id to rewind to. Defaults to the most recent."),
     },
   },
-  async ({ cwd, checkpoint }) => {
-    const report = JSON.parse(engine.rollback(wd(cwd), checkpoint ?? null));
-    const lines = [`Rewound to ${report.checkpoint}.`];
-    if (report.reverted.length) lines.push(`Reverted:`, ...report.reverted.map((r: string) => "  ✓ " + r));
-    if (report.skipped.length) lines.push(`Manual:`, ...report.skipped.map((s: string) => "  • " + s));
-    if (!report.reverted.length && !report.skipped.length) lines.push("Nothing to undo.");
-    return text(lines.join("\n"));
+  guard(({ cwd, checkpoint }) => {
+    const r = JSON.parse(engine.rollback(wd(cwd), checkpoint ?? null));
+    const lines: string[] = [];
+    if (r.failed?.length) {
+      lines.push(`Rollback to ${r.checkpoint} INCOMPLETE — journal left intact, safe to retry.`);
+    } else {
+      lines.push(`Rewound to ${r.checkpoint}.`);
+    }
+    if (r.reverted?.length) lines.push("Reverted:", ...r.reverted.map((x: string) => "  ✓ " + x));
+    if (r.skipped?.length) lines.push("Manual:", ...r.skipped.map((x: string) => "  • " + x));
+    if (r.failed?.length) lines.push("Failed:", ...r.failed.map((x: string) => "  ✗ " + x));
+    if (!r.reverted?.length && !r.skipped?.length && !r.failed?.length)
+      lines.push("Nothing to undo.");
+    return lines.join("\n");
+  }),
+);
+
+server.registerTool(
+  "undo_redo",
+  {
+    title: "Undo the last rollback",
+    description:
+      "Re-apply the changes that the most recent undo_rollback reversed, and re-extend the " +
+      "history so you can roll back again.",
+    inputSchema: cwdSchema,
   },
+  guard(({ cwd }) => {
+    const r = JSON.parse(engine.redo(wd(cwd)));
+    const lines = [r.failed?.length ? "Redo INCOMPLETE." : "Redid the last rollback."];
+    if (r.restored?.length) lines.push(...r.restored.map((x: string) => "  ✓ " + x));
+    if (r.failed?.length) lines.push("Failed:", ...r.failed.map((x: string) => "  ✗ " + x));
+    return lines.join("\n");
+  }),
 );
 
 function describeEffect(e: any): string {
   switch (e.kind) {
-    case "file_create":
+    case "path_create":
       return `created  ${e.path}`;
-    case "file_modify":
-      return `modified ${e.path}`;
-    case "file_delete":
-      return `deleted  ${e.path}`;
+    case "file":
+      return `captured ${e.path}`;
+    case "symlink":
+      return `symlink  ${e.path}`;
+    case "dir":
+      return `dir      ${e.path}`;
     case "http_mutation":
       return `${e.method} ${e.url}`;
     case "exec":

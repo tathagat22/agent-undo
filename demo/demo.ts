@@ -87,10 +87,12 @@ rmSync(project, { recursive: true, force: true });
 
 function describe(e: any): string {
   switch (e.kind) {
-    case "file_create": return `created  ${e.path}`;
-    case "file_modify": return `modified ${e.path}`;
-    case "file_delete": return `deleted  ${e.path}`;
+    case "path_create": return `created  ${e.path}`;
+    case "file": return `captured ${e.path}`;
+    case "symlink": return `symlink  ${e.path}`;
+    case "dir": return `dir      ${e.path}`;
     case "http_mutation": return `${e.method} ${e.url}`;
+    case "exec": return `ran      ${e.command}`;
     default: return JSON.stringify(e);
   }
 }
