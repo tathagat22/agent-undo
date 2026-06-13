@@ -108,20 +108,34 @@ A polyglot system with a real native boundary:
 
 ## Install
 
-**The CLI** (Rust):
+**The CLI** — works on macOS, Linux, and Windows, no Node required:
 
 ```bash
-cargo install --path crates/undo-core
-undo --help
+# Prebuilt binary (no toolchain needed)
+curl -fsSL https://raw.githubusercontent.com/tathagat22/agent-undo/main/packaging/install.sh | sh
+
+# Or via Cargo
+cargo install undo-core            # installs the `undo` binary
+
+# Or via Homebrew
+brew install tathagat22/tap/undo
 ```
 
-**The MCP server** (for agents like Claude Code):
+Windows users can grab the `.zip` from the [Releases](https://github.com/tathagat22/agent-undo/releases) page.
+
+**The MCP server** (for MCP clients like Cursor or Claude). Once published it's just:
 
 ```bash
-npm install            # installs deps
-npm run build:engine   # builds the native Rust engine
-npm run build          # compiles the TypeScript
+npx -y @agent-undo/core         # runs the MCP server
 ```
+
+Or build it from source today:
+
+```bash
+npm install && npm run build:engine && npm run build
+```
+
+> Distribution status: the release pipeline (prebuilt binaries + crates.io + npm prebuilds) is wired up in CI and triggers on a version tag — see [RELEASING.md](RELEASING.md). Until the first tagged release, install the CLI with `cargo install --path crates/undo-core` and run the MCP server from source.
 
 ## Use it with an MCP client
 

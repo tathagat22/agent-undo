@@ -3,7 +3,14 @@ name = "undo-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "The reversible side-effect engine behind `undo` — Ctrl-Z for AI agents."
+repository.workspace = true
+description = "Ctrl-Z for AI agents — a universal, reversible side-effect time machine with a CLI (`undo`)."
+homepage = "https://github.com/tathagat22/agent-undo"
+documentation = "https://docs.rs/undo-core"
+readme = "README.md"
+keywords = ["ai", "agents", "undo", "rollback", "cli"]
+categories = ["command-line-utilities", "development-tools", "filesystem"]
+rust-version = "1.74"
 
 [lib]
 name = "undo_core"

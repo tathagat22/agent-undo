@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Prebuilt `undo` CLI binaries for every platform — no Rust toolchain needed
+  # by users. Attached to the GitHub Release for the tag (and used by Homebrew).
+  cli-binaries:
+    name: CLI (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: macos-13, target: x86_64-apple-darwin }
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-latest, target: aarch64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # Builds `cargo build --release --bin undo` for the target (using `cross`
+      # automatically where needed), archives it, and uploads it to the release.
+      - name: Build & upload binary
+        uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: undo
+          target: ${{ matrix.target }}
+          manifest-path: crates/undo-core/Cargo.toml
+          archive: undo-$tag-$target
+          tar: unix
+          zip: windows
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish the CLI crate to crates.io. Needs a CARGO_REGISTRY_TOKEN secret.
+  crates-io:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo publish
+        run: cargo publish -p undo-core
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true # skip gracefully if the version is already published
