@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -29,31 +29,36 @@ jobs:
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
 
+      # --- Rust engine: the trust boundary, verified on Linux, macOS AND Windows ---
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy (engine)
+        run: cargo clippy -p undo-core --all-targets -- -D warnings
+
+      - name: cargo test — unit + property + concurrency + CLI (all platforms)
+        run: cargo test -p undo-core
+
+      # --- TypeScript / MCP layer (Linux + macOS for now; Windows NAPI packaging is a follow-up) ---
       - name: Set up Node
+        if: runner.os != 'Windows'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # --- Rust: the engine is the trust boundary, so it gets the strict gate ---
-      - name: rustfmt
-        run: cargo fmt --all -- --check
-
-      - name: clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-
-      - name: cargo test (unit + property + concurrency)
-        run: cargo test --workspace
-
-      # --- TypeScript / MCP layer ---
       - name: npm install
+        if: runner.os != 'Windows'
         run: npm ci
 
       - name: Build native engine (NAPI)
+        if: runner.os != 'Windows'
         run: npm run build:engine
 
       - name: Typecheck + build TS
+        if: runner.os != 'Windows'
         run: npm run build
 
       - name: MCP end-to-end smoke test
+        if: runner.os != 'Windows'
         run: npm test

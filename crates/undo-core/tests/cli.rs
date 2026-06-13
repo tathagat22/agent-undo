@@ -33,20 +33,25 @@ fn undo_run_snapshots_then_reverses() {
     let dir = tmp();
     fs::write(dir.join("data.txt"), b"v1").unwrap();
 
-    // `undo run -- sh -c '...'` snapshots, then runs a command that wrecks the file.
+    // `undo run -- <cmd>` snapshots up front, then runs the command. We wrap a
+    // trivial cross-platform command (undo itself) so this runs on every OS; the
+    // guarantee under test is that changes made *after* the snapshot reverse.
     let status = Command::new(bin())
         .current_dir(&dir)
-        .args(["run", "--", "sh", "-c", "printf WRECKED > data.txt"])
+        .args(["run", "--", bin(), "version"])
         .status()
         .unwrap();
     assert!(
         status.success(),
         "undo run should exit with the command's code"
     );
-    assert_eq!(fs::read(dir.join("data.txt")).unwrap(), b"WRECKED");
+
+    fs::write(dir.join("data.txt"), b"WRECKED").unwrap();
+    fs::write(dir.join("extra.txt"), b"added after snapshot").unwrap();
 
     run(&dir, &["rollback"]);
     assert_eq!(fs::read(dir.join("data.txt")).unwrap(), b"v1");
+    assert!(!dir.join("extra.txt").exists());
     fs::remove_dir_all(&dir).ok();
 }
 
@@ -55,9 +60,10 @@ fn hook_auto_checkpoints_so_edits_are_reversible() {
     let dir = tmp();
     fs::write(dir.join("app.js"), b"GOOD").unwrap();
 
+    // Escape backslashes so Windows paths (C:\...) form valid JSON.
+    let d = dir.display().to_string().replace('\\', "\\\\");
     let json = format!(
-        r#"{{"session_id":"s1","cwd":"{d}","tool_name":"Edit","tool_input":{{"file_path":"{d}/app.js"}}}}"#,
-        d = dir.display()
+        r#"{{"session_id":"s1","cwd":"{d}","tool_name":"Edit","tool_input":{{"file_path":"{d}/app.js"}}}}"#
     );
 
     // Feed the PreToolUse JSON to `undo hook` on stdin, as Claude Code does.
@@ -113,24 +119,23 @@ fn protect_installs_then_unprotect_removes_the_hook() {
     let dir = tmp();
     run(&dir, &["protect"]);
 
+    let matchers = |dir: &PathBuf| {
+        fs::read_to_string(dir.join(".claude/settings.local.json"))
+            .unwrap()
+            .matches("\"matcher\"")
+            .count()
+    };
+
     let settings = fs::read_to_string(dir.join(".claude/settings.local.json")).unwrap();
     assert!(settings.contains("PreToolUse"));
     assert!(settings.contains("Edit|Write|MultiEdit|NotebookEdit|Bash"));
-    assert!(
-        settings.contains(bin()),
-        "hook command should reference the binary"
-    );
+    assert_eq!(matchers(&dir), 1, "one hook entry after protect");
 
-    // Running protect twice must not duplicate the hook. One matcher per entry.
+    // Running protect twice must not duplicate the hook (one matcher per entry).
     run(&dir, &["protect"]);
-    let count = fs::read_to_string(dir.join(".claude/settings.local.json"))
-        .unwrap()
-        .matches("\"matcher\"")
-        .count();
-    assert_eq!(count, 1, "protect must be idempotent");
+    assert_eq!(matchers(&dir), 1, "protect must be idempotent");
 
     run(&dir, &["unprotect"]);
-    let after = fs::read_to_string(dir.join(".claude/settings.local.json")).unwrap();
-    assert!(!after.contains(bin()), "unprotect should remove our hook");
+    assert_eq!(matchers(&dir), 0, "unprotect should remove our hook");
     fs::remove_dir_all(&dir).ok();
 }

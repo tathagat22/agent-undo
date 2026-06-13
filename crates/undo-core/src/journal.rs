@@ -865,7 +865,8 @@ fn symlink(target: &Path, link: &Path) -> io::Result<()> {
     std::os::windows::fs::symlink_file(target, link)
 }
 
-/// Write a whole file atomically: temp file in the same dir, then rename.
+/// Write a whole file atomically: temp file in the same dir, then rename over
+/// the target (atomic on POSIX; `MoveFileEx`-with-replace on Windows).
 fn atomic_write(path: &Path, data: &[u8]) -> io::Result<()> {
     let dir = path.parent().unwrap_or_else(|| Path::new("."));
     let tmp = dir.join(format!(".tmp-{}-{}", std::process::id(), now_nanos()));
@@ -874,7 +875,23 @@ fn atomic_write(path: &Path, data: &[u8]) -> io::Result<()> {
         f.write_all(data)?;
         f.sync_all()?;
     }
-    fs::rename(&tmp, path)
+    // On Windows the replace can transiently fail if an antivirus/indexer holds
+    // a handle on the target for a moment; a few quick retries make it reliable.
+    // On POSIX the first attempt always succeeds.
+    let mut attempt = 0;
+    loop {
+        match fs::rename(&tmp, path) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                attempt += 1;
+                if attempt >= 10 {
+                    let _ = fs::remove_file(&tmp);
+                    return Err(e);
+                }
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+        }
+    }
 }
 
 /// Lexically resolve `.` and `..` without touching the filesystem (so it works
