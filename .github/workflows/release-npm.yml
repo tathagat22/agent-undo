@@ -67,10 +67,11 @@ jobs:
         with:
           path: crates/undo-napi/artifacts
 
-      # `napi artifacts` creates the npm/<platform> dirs and moves each .node in.
+      # create-npm-dir makes the npm/<platform> dirs; artifacts moves each .node in.
       - name: Collect artifacts into platform packages
         working-directory: crates/undo-napi
         run: |
+          npx napi create-npm-dir -t .
           npx napi artifacts --dir artifacts
           ls -R npm
 
