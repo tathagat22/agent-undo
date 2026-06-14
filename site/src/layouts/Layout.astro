@@ -1,0 +1,78 @@
+---
+import "../styles/global.css";
+
+const SITE = "https://tathagat22.github.io/walkback";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const {
+  title = "walkback — Undo anything your AI agent does",
+  description = "Reverse anything an AI agent does to the real world — file writes, API calls, charges, emails, DB migrations, cloud changes — with one command. Open-source Rust engine + MCP server. Works with Claude Code, Cursor, Aider, and Codex.",
+} = Astro.props;
+
+const canonical = SITE + "/";
+const ogImage = SITE + "/og.svg";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "walkback",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "macOS, Linux, Windows",
+  description,
+  url: canonical,
+  license: "https://opensource.org/licenses/MIT",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  author: { "@type": "Person", name: "Tathagat Maitray" },
+  sameAs: ["https://github.com/tathagat22/walkback"],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/logo.svg`} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="keywords"
+      content="AI agent undo, undo AI agent, reverse agent actions, AI agent rollback, Claude Code undo, Cursor undo, agent safety, MCP server, rollback API calls, undo database migration, AI coding agent guardrails"
+    />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#08090d" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="walkback" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts: distinctive display + refined body + mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

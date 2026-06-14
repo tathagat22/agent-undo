@@ -1,0 +1,46 @@
+<svg width="1200" height="300" viewBox="0 0 1200 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="walkback — undo anything your AI agent does">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0a0b10"/>
+      <stop offset="1" stop-color="#0d1119"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(190 150) scale(260)">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 200) scale(320)">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="word" x1="300" y1="110" x2="760" y2="175" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#c7d2fe"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="120" y1="100" x2="210" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="0.5" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="300" y1="200" x2="640" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="300" rx="24" fill="url(#glow)"/>
+  <rect width="1200" height="300" rx="24" fill="url(#glow2)"/>
+  <rect x="0.75" y="0.75" width="1198.5" height="298.5" rx="23.25" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1.5"/>
+  <!-- mark badge -->
+  <rect x="96" y="86" width="128" height="128" rx="30" fill="#11131b"/>
+  <rect x="96.75" y="86.75" width="126.5" height="126.5" rx="29.25" fill="none" stroke="#6366f1" stroke-opacity="0.4" stroke-width="1.5"/>
+  <g transform="translate(160 150) scale(2.55) translate(-32 -32)" stroke="url(#mark)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M8 32a24 24 0 1 0 24-24 26 26 0 0 0-17.95 7.3L8 21.35"/>
+    <path d="M8 8v13.35h13.35"/>
+  </g>
+  <circle cx="160" cy="150" r="6" fill="url(#mark)"/>
+  <!-- wordmark -->
+  <text x="270" y="158" font-family="'SF Pro Display','Segoe UI',Helvetica,Arial,sans-serif" font-size="84" font-weight="700" letter-spacing="-2" fill="url(#word)">walkback</text>
+  <!-- tagline -->
+  <text x="272" y="206" font-family="'SF Mono','JetBrains Mono',ui-monospace,Menlo,monospace" font-size="23" font-weight="500" fill="#8b93a7">undo anything your AI agent does — not just files.</text>
+  <rect x="272" y="224" width="300" height="3" rx="1.5" fill="url(#accent)"/>
+</svg>

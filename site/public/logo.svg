@@ -1,0 +1,21 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="walkback logo">
+  <defs>
+    <linearGradient id="wb-grad" x1="40" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="0.5" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="wb-stroke" x1="0" y1="0" x2="240" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.35"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="224" height="224" rx="52" fill="#0b0d12"/>
+  <rect x="8.5" y="8.5" width="223" height="223" rx="51.5" fill="none" stroke="url(#wb-stroke)" stroke-width="1.5"/>
+  <!-- counter-clockwise undo / rewind arrow -->
+  <g transform="translate(120 120) scale(4.6) translate(-32 -32)" stroke="url(#wb-grad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M8 32a24 24 0 1 0 24-24 26 26 0 0 0-17.95 7.3L8 21.35"/>
+    <path d="M8 8v13.35h13.35"/>
+  </g>
+  <circle cx="120" cy="120" r="9" fill="url(#wb-grad)"/>
+</svg>

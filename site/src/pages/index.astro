@@ -1,0 +1,248 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.tsx";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const REPO = "https://github.com/tathagat22/walkback";
+
+const agents = ["Claude Code", "Cursor", "Aider", "Codex", "Windsurf", "Cline"];
+
+const reverses = [
+  {
+    icon: "📁",
+    color: "#818cf8",
+    title: "Files",
+    tag: "byte-perfect, crash-safe",
+    body: "Create, modify, delete, dirs, symlinks, permissions — all restored exactly from a content-addressed blob store. Plus redo and selective per-file revert.",
+    code: "walkback rollback        # rewind everything\nwalkback revert src/auth.ts  # ...or one file",
+  },
+  {
+    icon: "🌐",
+    color: "#22d3ee",
+    title: "Network & API calls",
+    tag: "actually reversed",
+    body: "When a mutation is recorded with its compensator — the request that reverses it — walkback runs it. Dry-run gated: it shows you what it would do before it fires.",
+    code: "POST /v1/charges    → records refund\nwalkback compensate → previews, then fires",
+  },
+  {
+    icon: "✉️",
+    color: "#34d399",
+    title: "Email",
+    tag: "honest hold-and-release",
+    body: "No tool can recall a delivered email. So walkback does the one honest thing: holds it as a draft that went nowhere. Cancel = true unsend. Gmail + Outlook.",
+    code: "walkback_email_stage  …   # held, NOT sent\nwalkback_email_cancel     # never existed",
+  },
+  {
+    icon: "☁️",
+    color: "#fb7185",
+    title: "Cloud & databases",
+    tag: "any tool",
+    body: "No hardcoded AWS or Postgres. The agent records the command that reverses what it did, and walkback runs it — dry-run gated. Works with any cloud, DB, or CLI.",
+    code: 'record_reversal "created bucket" \\\n  command="aws s3 rb s3://assets-prod"',
+  },
+];
+
+const channels = [
+  { setup: "Anything — Cursor, Copilot, Aider, scripts, even you", cmd: "walkback watch", covers: "Snapshots, then watches the filesystem" },
+  { setup: "Any CLI agent", cmd: "walkback run -- <cmd>", covers: "Wraps the command; reversible after" },
+  { setup: "Any MCP client", cmd: "add the MCP server", covers: "The agent calls walkback tools itself" },
+  { setup: "Claude Code", cmd: "walkback protect", covers: "Native hook — auto-checkpoints, zero effort" },
+];
+---
+
+<Layout>
+  <!-- ====================== HERO ====================== -->
+  <section class="relative min-h-screen overflow-hidden">
+    <Hero client:only="react" />
+
+    <!-- nav -->
+    <nav class="relative z-20 max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5">
+        <img src={`${base}/logo.svg`} alt="walkback" width="32" height="32" class="rounded-lg" />
+        <span class="font-display font-semibold text-lg tracking-tight">walkback</span>
+      </a>
+      <div class="flex items-center gap-6 text-sm text-[var(--color-muted)]">
+        <a href="#reverses" class="hover:text-white transition-colors hidden sm:inline">What it reverses</a>
+        <a href="#why" class="hover:text-white transition-colors hidden sm:inline">Why not git?</a>
+        <a href="#install" class="hover:text-white transition-colors">Install</a>
+        <a href={REPO} class="glass px-3.5 py-1.5 rounded-lg text-white hover:border-white/20 transition-colors">GitHub ★</a>
+      </div>
+    </nav>
+
+    <!-- hero copy -->
+    <div class="relative z-10 max-w-4xl mx-auto px-6 text-center pt-[6vh] sm:pt-[9vh]">
+      <div class="reveal inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-[var(--color-muted)] mb-7" style="animation-delay:.05s">
+        <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-cyan)]"></span>
+        Open-source · Rust engine + MCP · MIT
+      </div>
+      <h1 class="reveal font-display font-semibold leading-[0.98] tracking-tight text-[clamp(2.6rem,7vw,5.2rem)]" style="animation-delay:.12s">
+        Undo <span class="gradient-text">anything</span><br />your AI agent does.
+      </h1>
+      <p class="reveal mx-auto mt-6 max-w-2xl text-[var(--color-muted)] text-[clamp(1rem,2vw,1.22rem)] leading-relaxed" style="animation-delay:.2s">
+        Files come back. So does the charge, the sent email, the dropped table, the
+        cloud resource. When an agent goes off the rails, one command rewinds all of it.
+      </p>
+      <div class="reveal flex flex-wrap items-center justify-center gap-3 mt-9" style="animation-delay:.28s">
+        <a href="#install" class="px-5 py-3 rounded-xl font-medium text-[#0a0b10] bg-gradient-to-r from-[var(--color-indigo-light)] to-[var(--color-cyan)] hover:opacity-90 transition-opacity">
+          Get started
+        </a>
+        <a href={REPO} class="px-5 py-3 rounded-xl font-medium glass text-white hover:border-white/20 transition-colors">
+          Star on GitHub →
+        </a>
+      </div>
+      <div class="reveal mt-10 text-xs uppercase tracking-widest text-[var(--color-faint)]" style="animation-delay:.36s">
+        Works with any agent
+      </div>
+      <div class="reveal flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-3 text-sm text-[var(--color-muted)]" style="animation-delay:.4s">
+        {agents.map((a) => <span>{a}</span>)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== WHY NOT GIT ====================== -->
+  <section id="why" class="relative py-28 px-6">
+    <div class="max-w-5xl mx-auto">
+      <p class="accent-text font-mono text-sm mb-3">The objection everyone has</p>
+      <h2 class="font-display font-semibold text-[clamp(2rem,4.5vw,3.2rem)] tracking-tight leading-tight mb-4">
+        “Why not just git?”
+      </h2>
+      <p class="text-[var(--color-muted)] text-lg max-w-2xl mb-12">
+        Because git only sees your files. Your agent does far more than edit files —
+        and <span class="text-white">none of the rest</span> leaves a trail you can reverse.
+      </p>
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="hairline rounded-2xl p-7 bg-[var(--color-bg-2)]">
+          <div class="font-mono text-sm text-[var(--color-faint)] mb-4">git / editor undo</div>
+          <ul class="space-y-3 text-[var(--color-muted)]">
+            <li>✓ Reverts file changes you committed</li>
+            <li class="opacity-60">✕ Can't undo a POST that charged a card</li>
+            <li class="opacity-60">✕ Can't recall a sent email</li>
+            <li class="opacity-60">✕ Can't restore a dropped table</li>
+            <li class="opacity-60">✕ Can't delete the cloud bucket it made</li>
+          </ul>
+        </div>
+        <div class="rounded-2xl p-7 bg-[var(--color-bg-2)]" style="border:1px solid rgba(99,102,241,.4)">
+          <div class="font-mono text-sm accent-text mb-4">walkback</div>
+          <ul class="space-y-3 text-[var(--color-ink)]">
+            <li>✓ Files, byte-for-byte (or via git — your call)</li>
+            <li>✓ Reverses API mutations via compensators</li>
+            <li>✓ Holds email so cancel is a true unsend</li>
+            <li>✓ Runs the inverse of DB & cloud actions</li>
+            <li>✓ One audit + one rollback across all of it</li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-[var(--color-faint)] text-sm mt-6 font-mono">
+        Not a git replacement. A second system for everything git can't track.
+      </p>
+    </div>
+  </section>
+
+  <!-- ====================== WHAT IT REVERSES ====================== -->
+  <section id="reverses" class="relative py-24 px-6 grid-bg">
+    <div class="max-w-6xl mx-auto">
+      <p class="accent-text font-mono text-sm mb-3">One model, every domain</p>
+      <h2 class="font-display font-semibold text-[clamp(2rem,4.5vw,3.2rem)] tracking-tight leading-tight mb-3">
+        What walkback reverses
+      </h2>
+      <p class="text-[var(--color-muted)] text-lg max-w-2xl mb-12">
+        Record a change with its inverse; replay the inverse on rollback. Anything that
+        touches the outside world is dry-run gated — it shows you what it would do, never fires blind.
+      </p>
+      <div class="grid md:grid-cols-2 gap-5">
+        {reverses.map((r) => (
+          <div class="hairline rounded-2xl p-7 bg-[var(--color-panel)]/60 hover:border-white/15 transition-colors">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">{r.icon}</span>
+              <div>
+                <h3 class="font-display font-semibold text-xl tracking-tight">{r.title}</h3>
+                <span class="font-mono text-xs" style={`color:${r.color}`}>{r.tag}</span>
+              </div>
+            </div>
+            <p class="text-[var(--color-muted)] leading-relaxed mb-5">{r.body}</p>
+            <pre class="font-mono text-xs bg-[#06070b] rounded-lg p-4 overflow-x-auto text-[var(--color-muted)] hairline"><code>{r.code}</code></pre>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== HOW IT WORKS ====================== -->
+  <section class="relative py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <p class="accent-text font-mono text-sm mb-3">Zero lock-in</p>
+      <h2 class="font-display font-semibold text-[clamp(2rem,4.5vw,3.2rem)] tracking-tight leading-tight mb-3">
+        Meets your agent where it lives
+      </h2>
+      <p class="text-[var(--color-muted)] text-lg max-w-2xl mb-10">
+        Not tied to any model, vendor, or IDE. Every agent changes files on disk —
+        walkback meets it at whichever layer is convenient.
+      </p>
+      <div class="hairline rounded-2xl overflow-hidden bg-[var(--color-bg-2)]">
+        {channels.map((c, i) => (
+          <div class={`grid sm:grid-cols-[1.4fr_1fr_1.4fr] gap-3 px-6 py-5 ${i > 0 ? "border-t border-white/6" : ""}`}>
+            <div class="text-[var(--color-ink)]">{c.setup}</div>
+            <code class="font-mono text-sm accent-text">{c.cmd}</code>
+            <div class="text-[var(--color-muted)] text-sm">{c.covers}</div>
+          </div>
+        ))}
+      </div>
+      <div class="grid sm:grid-cols-3 gap-5 mt-12">
+        <div class="hairline rounded-2xl p-6 bg-[var(--color-bg-2)]">
+          <div class="font-display font-semibold text-lg mb-1">Crash-safe</div>
+          <p class="text-[var(--color-muted)] text-sm">Atomic write-temp-then-rename journal. Never reports success while leaving files unrestored.</p>
+        </div>
+        <div class="hairline rounded-2xl p-6 bg-[var(--color-bg-2)]">
+          <div class="font-display font-semibold text-lg mb-1">Dry-run gated</div>
+          <p class="text-[var(--color-muted)] text-sm">Every outside-world reversal previews first. It never fires a refund or a delete blindly.</p>
+        </div>
+        <div class="hairline rounded-2xl p-6 bg-[var(--color-bg-2)]">
+          <div class="font-display font-semibold text-lg mb-1">Tested, not asserted</div>
+          <p class="text-[var(--color-muted)] text-sm">Property + concurrency tests, byte-for-byte round-trips. CI green on Linux, macOS, Windows.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== INSTALL ====================== -->
+  <section id="install" class="relative py-24 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="font-display font-semibold text-[clamp(2rem,4.5vw,3.2rem)] tracking-tight leading-tight mb-3">
+        Arm it in one command
+      </h2>
+      <p class="text-[var(--color-muted)] text-lg mb-10">
+        The CLI runs on macOS, Linux, and Windows — no Node required.
+      </p>
+      <div class="text-left space-y-3">
+        <pre class="font-mono text-sm bg-[#06070b] rounded-xl p-5 hairline overflow-x-auto"><code><span class="text-[var(--color-faint)]"># the CLI</span>
+<span class="text-[var(--color-cyan)]">cargo</span> install walkback-core
+<span class="text-[var(--color-cyan)]">brew</span> install tathagat22/tap/walkback</code></pre>
+        <pre class="font-mono text-sm bg-[#06070b] rounded-xl p-5 hairline overflow-x-auto"><code><span class="text-[var(--color-faint)]"># the MCP server (Cursor / Claude / any MCP client)</span>
+<span class="text-[var(--color-cyan)]">npx</span> -y @walkback/core</code></pre>
+        <pre class="font-mono text-sm bg-[#06070b] rounded-xl p-5 hairline overflow-x-auto"><code><span class="text-[var(--color-faint)]"># then, with any agent running:</span>
+<span class="text-[var(--color-cyan)]">walkback</span> watch     <span class="text-[var(--color-faint)]"># arm it</span>
+<span class="text-[var(--color-cyan)]">walkback</span> diff      <span class="text-[var(--color-faint)]"># see what it did</span>
+<span class="text-[var(--color-cyan)]">walkback</span> rollback  <span class="text-[var(--color-faint)]"># rewind all of it</span></code></pre>
+      </div>
+      <a href={REPO} class="inline-block mt-10 px-6 py-3 rounded-xl font-medium text-[#0a0b10] bg-gradient-to-r from-[var(--color-indigo-light)] to-[var(--color-cyan)] hover:opacity-90 transition-opacity">
+        Read the docs on GitHub →
+      </a>
+    </div>
+  </section>
+
+  <!-- ====================== FOOTER ====================== -->
+  <footer class="border-t border-white/6 py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--color-muted)]">
+      <div class="flex items-center gap-2.5">
+        <img src={`${base}/logo.svg`} alt="walkback" width="24" height="24" class="rounded-md" />
+        <span class="font-display font-medium text-white">walkback</span>
+        <span class="text-[var(--color-faint)]">· MIT © Tathagat Maitray</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <a href={REPO} class="hover:text-white transition-colors">GitHub</a>
+        <a href="https://crates.io/crates/walkback-core" class="hover:text-white transition-colors">crates.io</a>
+        <a href="https://www.npmjs.com/package/@walkback/core" class="hover:text-white transition-colors">npm</a>
+      </div>
+    </div>
+  </footer>
+</Layout>
