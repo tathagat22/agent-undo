@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>undo — Ctrl-Z for AI agents</title>
+<title>undo — Undo anything your AI agent does</title>
 <meta name="description" content="When you let an AI agent loose on your machine, undo records every change it makes and reverses all of it with one command — files, network calls, email, cloud, and databases.">
-<meta property="og:title" content="undo — Ctrl-Z for AI agents">
+<meta property="og:title" content="undo — Undo anything your AI agent does">
 <meta property="og:description" content="Reverse everything an AI agent touches with one command.">
 <meta property="og:image" content="banner.svg">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -72,25 +72,25 @@
       </g><circle cx="64" cy="64" r="7.5" fill="url(#ug)"/>
     </svg>
     <h1>undo</h1>
-    <div class="tag">Ctrl-Z for AI agents</div>
+    <div class="tag">Undo anything your AI agent does</div>
     <p class="lead">When you let an AI agent loose on your machine, <b>undo</b> records every change it makes to the real world — and reverses all of it with one command.</p>
     <div class="cta">
-      <a class="btn p" href="https://github.com/tathagat22/agent-undo">GitHub</a>
-      <a class="btn" href="https://www.npmjs.com/package/@agent-undo/core">npm</a>
-      <a class="btn" href="https://crates.io/crates/undo-core">crates.io</a>
+      <a class="btn p" href="https://github.com/tathagat22/walkback">GitHub</a>
+      <a class="btn" href="https://www.npmjs.com/package/@walkback/core">npm</a>
+      <a class="btn" href="https://crates.io/crates/walkback-core">crates.io</a>
     </div>
-    <pre class="cmd"><span class="p">$</span> undo watch                 <span class="p"># arm it — any agent's changes are now reversible</span>
-<span class="p">$</span> undo diff                  <span class="p"># see exactly what it did</span>
-<span class="p">$</span> undo rollback              <span class="g">✓ rewound to cp001</span></pre>
+    <pre class="cmd"><span class="p">$</span> walkback watch                 <span class="p"># arm it — any agent's changes are now reversible</span>
+<span class="p">$</span> walkback diff                  <span class="p"># see exactly what it did</span>
+<span class="p">$</span> walkback rollback              <span class="g">✓ rewound to cp001</span></pre>
   </header>
 
   <section>
     <h2>Works with any AI agent</h2>
     <div class="agents">
-      <div class="row"><b>Anything</b><code>undo watch</code><span>Cursor, Copilot, Windsurf, Aider, custom scripts — snapshots, then watches the filesystem.</span></div>
-      <div class="row"><b>Any CLI agent</b><code>undo run -- &lt;cmd&gt;</code><span>Wraps the command; snapshots first, reversible after.</span></div>
-      <div class="row"><b>Any MCP client</b><code>npx @agent-undo/core</code><span>The agent drives undo through 16 MCP tools.</span></div>
-      <div class="row"><b>Claude Code</b><code>undo protect</code><span>Native hook — auto-checkpoints every session, zero effort.</span></div>
+      <div class="row"><b>Anything</b><code>walkback watch</code><span>Cursor, Copilot, Windsurf, Aider, custom scripts — snapshots, then watches the filesystem.</span></div>
+      <div class="row"><b>Any CLI agent</b><code>walkback run -- &lt;cmd&gt;</code><span>Wraps the command; snapshots first, reversible after.</span></div>
+      <div class="row"><b>Any MCP client</b><code>npx @walkback/core</code><span>The agent drives undo through 16 MCP tools.</span></div>
+      <div class="row"><b>Claude Code</b><code>walkback protect</code><span>Native hook — auto-checkpoints every session, zero effort.</span></div>
     </div>
   </section>
 
@@ -98,7 +98,7 @@
     <h2>What it reverses</h2>
     <div class="grid">
       <div class="card"><h3>📁 Files</h3><p>Create / modify / delete / dirs / symlinks / permissions, byte-perfect &amp; crash-safe. Plus redo and selective per-file revert.</p></div>
-      <div class="card"><h3>🔍 undo diff</h3><p>A PR-style view of exactly what the agent changed — review before you keep it or reverse it.</p></div>
+      <div class="card"><h3>🔍 walkback diff</h3><p>A PR-style view of exactly what the agent changed — review before you keep it or reverse it.</p></div>
       <div class="card"><h3>🌐 Network calls</h3><p>Runs the compensating request (the DELETE that undoes a POST, the refund that undoes a charge). Dry-run gated.</p></div>
       <div class="card"><h3>✉️ Email</h3><p>Honest hold-and-release: the email is a draft that has gone nowhere. Cancel = a true unsend.</p></div>
       <div class="card"><h3>☁️ Cloud &amp; databases</h3><p>Records the command that reverses it (terraform destroy, inverse SQL). Works with any tool, not a hardcoded few.</p></div>
@@ -109,16 +109,16 @@
   <section>
     <h2>Install</h2>
     <pre><span class="p"># CLI — macOS, Linux, Windows, no Node needed</span>
-cargo install undo-core
-curl -fsSL https://raw.githubusercontent.com/tathagat22/agent-undo/main/packaging/install.sh | sh
+cargo install walkback-core
+curl -fsSL https://raw.githubusercontent.com/tathagat22/walkback/main/packaging/install.sh | sh
 
 <span class="p"># MCP server</span>
-npx -y @agent-undo/core</pre>
+npx -y @walkback/core</pre>
   </section>
 
 </div>
 <footer>
-  <p>MIT © Tathagat Maitray · <a href="https://github.com/tathagat22/agent-undo">github.com/tathagat22/agent-undo</a></p>
+  <p>MIT © Tathagat Maitray · <a href="https://github.com/tathagat22/walkback">github.com/tathagat22/walkback</a></p>
 </footer>
 </body>
 </html>

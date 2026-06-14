@@ -5,7 +5,7 @@
 use std::fs;
 use std::path::PathBuf;
 use std::thread;
-use undo_core::{Row, Undo};
+use walkback_core::{Row, Undo};
 
 fn tmp() -> PathBuf {
     use std::sync::atomic::{AtomicU64, Ordering};

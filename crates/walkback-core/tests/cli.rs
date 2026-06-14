@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn bin() -> &'static str {
-    env!("CARGO_BIN_EXE_undo")
+    env!("CARGO_BIN_EXE_walkback")
 }
 
 fn tmp() -> PathBuf {

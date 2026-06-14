@@ -34,10 +34,10 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: clippy (engine)
-        run: cargo clippy -p undo-core --all-targets -- -D warnings
+        run: cargo clippy -p walkback-core --all-targets -- -D warnings
 
       - name: cargo test — unit + property + concurrency + CLI (all platforms)
-        run: cargo test -p undo-core
+        run: cargo test -p walkback-core
 
       # --- TypeScript / MCP layer (Linux + macOS for now; Windows NAPI packaging is a follow-up) ---
       - name: Set up Node

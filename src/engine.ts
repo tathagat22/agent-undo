@@ -1,4 +1,4 @@
-// Loads the NAPI-built native engine (Rust `undo-core`) and gives it a typed
+// Loads the NAPI-built native engine (Rust `walkback-core`) and gives it a typed
 // TypeScript face. Everything above this line is JS/TS; everything the engine
 // actually does happens in Rust, in-process.
 
@@ -36,6 +36,6 @@ export interface UndoEngine {
   diffJson(workdir: string): string;
 }
 
-const engine = require("@agent-undo/engine") as UndoEngine;
+const engine = require("@walkback/engine") as UndoEngine;
 
 export default engine;

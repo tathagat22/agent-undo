@@ -1,12 +1,12 @@
-//! `undo` — the human-facing CLI. Ctrl-Z for AI agents.
+//! `walkback` — the human-facing CLI. Undo anything your AI agent does.
 //!
-//!   undo init                      set up undo in this directory
-//!   undo checkpoint [label...]     mark a point you can rewind to
-//!   undo track <path>...           capture a file before the agent changes it
-//!   undo status                    what's changed since the last checkpoint
-//!   undo log                       the full history
-//!   undo rollback [checkpoint]     rewind everything since a checkpoint
-//!   undo redo                      undo the last rollback
+//!   walkback init                      set up walkback in this directory
+//!   walkback checkpoint [label...]     mark a point you can rewind to
+//!   walkback track <path>...           capture a file before the agent changes it
+//!   walkback status                    what's changed since the last checkpoint
+//!   walkback log                       the full history
+//!   walkback rollback [checkpoint]     rewind everything since a checkpoint
+//!   walkback redo                      undo the last rollback
 
 use serde_json::json;
 use std::collections::BTreeSet;
@@ -18,7 +18,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, RecvTimeoutError};
 use std::sync::Arc;
 use std::time::Duration;
-use undo_core::{Row, Undo};
+use walkback_core::{Row, Undo};
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -45,7 +45,7 @@ fn main() {
             Ok(())
         }
         "version" | "--version" | "-V" => {
-            println!("undo {}", env!("CARGO_PKG_VERSION"));
+            println!("walkback {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         other => {
@@ -66,7 +66,7 @@ fn open() -> io::Result<Undo> {
     Undo::discover(&cwd)?.ok_or_else(|| {
         io::Error::new(
             io::ErrorKind::NotFound,
-            "no .undo here — run `undo init` first",
+            "no .undo here — run `walkback init` first",
         )
     })
 }
@@ -75,11 +75,11 @@ fn cmd_init() -> io::Result<()> {
     let cwd = env::current_dir()?;
     Undo::init(&cwd)?;
     println!(
-        "\x1b[32m✓\x1b[0m initialized undo in {}",
+        "\x1b[32m✓\x1b[0m initialized walkback in {}",
         cwd.join(".undo").display()
     );
     println!("  \x1b[2madded .undo/ to .gitignore (snapshots may contain secrets)\x1b[0m");
-    println!("  next:  undo checkpoint \"before the agent runs\"");
+    println!("  next:  walkback checkpoint \"before the agent runs\"");
     Ok(())
 }
 
@@ -99,7 +99,7 @@ fn cmd_track(rest: &[String]) -> io::Result<()> {
     if rest.is_empty() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "usage: undo track <path>...",
+            "usage: walkback track <path>...",
         ));
     }
     let u = open()?;
@@ -123,7 +123,7 @@ fn cmd_status() -> io::Result<()> {
     match st.checkpoint {
         Some((id, label)) => println!("on checkpoint \x1b[1m{id}\x1b[0m  \"{label}\""),
         None => {
-            println!("no checkpoint yet — run `undo checkpoint`");
+            println!("no checkpoint yet — run `walkback checkpoint`");
             return Ok(());
         }
     }
@@ -139,7 +139,7 @@ fn cmd_status() -> io::Result<()> {
             };
             println!("    {mark} {}", e.describe());
         }
-        println!("\n  run `undo rollback` to rewind all of it");
+        println!("\n  run `walkback rollback` to rewind all of it");
     }
     Ok(())
 }
@@ -235,7 +235,7 @@ fn cmd_rollback(rest: &[String]) -> io::Result<()> {
     if report.reverted.is_empty() && report.skipped.is_empty() && report.failed.is_empty() {
         println!("  (nothing to undo)");
     } else if report.failed.is_empty() {
-        println!("\n  \x1b[2mchanged your mind? `undo redo`\x1b[0m");
+        println!("\n  \x1b[2mchanged your mind? `walkback redo`\x1b[0m");
     }
     if !report.failed.is_empty() {
         exit(1);
@@ -247,7 +247,7 @@ fn cmd_revert(rest: &[String]) -> io::Result<()> {
     if rest.is_empty() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "usage: undo revert <path>...",
+            "usage: walkback revert <path>...",
         ));
     }
     let u = open()?;
@@ -290,9 +290,9 @@ fn discover_or_init(dir: &Path) -> io::Result<Undo> {
     }
 }
 
-/// `undo run -- <command>` — snapshot the whole project, then run a command.
+/// `walkback run -- <command>` — snapshot the whole project, then run a command.
 /// Whatever the command does to the working tree is reversible with one
-/// `undo rollback`. Pre-state is captured up front, so no filesystem watcher
+/// `walkback rollback`. Pre-state is captured up front, so no filesystem watcher
 /// (which could only see changes *after* they happen) is needed.
 fn cmd_run(rest: &[String]) -> io::Result<()> {
     let cmd: &[String] = match rest.first() {
@@ -302,7 +302,7 @@ fn cmd_run(rest: &[String]) -> io::Result<()> {
     if cmd.is_empty() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "usage: undo run -- <command> [args...]",
+            "usage: walkback run -- <command> [args...]",
         ));
     }
     let cwd = env::current_dir()?;
@@ -310,7 +310,7 @@ fn cmd_run(rest: &[String]) -> io::Result<()> {
     let root = u.workdir().to_path_buf();
     let id = u.checkpoint(&format!("run: {}", cmd.join(" ")))?;
     u.track(&root)?;
-    println!("\x1b[2m✓ snapshot {id} taken — `undo rollback` reverses anything below\x1b[0m\n");
+    println!("\x1b[2m✓ snapshot {id} taken — `walkback rollback` reverses anything below\x1b[0m\n");
     let status = std::process::Command::new(&cmd[0])
         .args(&cmd[1..])
         .current_dir(&cwd)
@@ -318,12 +318,12 @@ fn cmd_run(rest: &[String]) -> io::Result<()> {
     exit(status.code().unwrap_or(1));
 }
 
-/// `undo watch` — the universal, any-agent safety net. Snapshots the project,
+/// `walkback watch` — the universal, any-agent safety net. Snapshots the project,
 /// then watches the filesystem. Because the one thing every AI agent does —
 /// regardless of model, vendor, or IDE — is change files on disk, this works
 /// with all of them (Cursor, Copilot, Aider, Windsurf, custom scripts) with
 /// zero integration. Everything that changes while watching is reversible with
-/// one `undo rollback`.
+/// one `walkback rollback`.
 fn cmd_watch(rest: &[String]) -> io::Result<()> {
     let once = rest.iter().any(|a| a == "--once");
     let cwd = env::current_dir()?;
@@ -341,7 +341,7 @@ fn cmd_watch(rest: &[String]) -> io::Result<()> {
     if once {
         return Ok(());
     }
-    println!("  \x1b[2mCtrl-C to stop, then `undo rollback` to reverse everything\x1b[0m\n");
+    println!("  \x1b[2mCtrl-C to stop, then `walkback rollback` to reverse everything\x1b[0m\n");
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -367,7 +367,7 @@ fn cmd_watch(rest: &[String]) -> io::Result<()> {
         match rx.recv_timeout(Duration::from_millis(400)) {
             Ok(Ok(event)) => {
                 for p in event.paths {
-                    if !undo_core::path_is_ignored(&p) {
+                    if !walkback_core::path_is_ignored(&p) {
                         pending.insert(p);
                     }
                 }
@@ -390,12 +390,12 @@ fn cmd_watch(rest: &[String]) -> io::Result<()> {
 
     println!("\n\x1b[32m✓\x1b[0m stopped — {total} change event(s) captured under {id}");
     println!(
-        "  \x1b[1mundo rollback\x1b[0m reverses everything since the baseline, or just leave it"
+        "  \x1b[1mwalkback rollback\x1b[0m reverses everything since the baseline, or just leave it"
     );
     Ok(())
 }
 
-/// `undo protect` — install a Claude Code PreToolUse hook so every session is
+/// `walkback protect` — install a Claude Code PreToolUse hook so every session is
 /// auto-checkpointed. Zero effort: the agent doesn't have to cooperate.
 fn cmd_protect() -> io::Result<()> {
     let cwd = env::current_dir()?;
@@ -432,17 +432,17 @@ fn cmd_protect() -> io::Result<()> {
     }));
     write_json(&settings_path, &settings)?;
 
-    println!("\x1b[32m✓\x1b[0m undo is now protecting this project");
+    println!("\x1b[32m✓\x1b[0m walkback is now protecting this project");
     println!(
         "  \x1b[2mhook installed in {}\x1b[0m",
         settings_path.display()
     );
     println!("  every Claude Code session is auto-checkpointed before the agent acts");
-    println!("  reverse the last session anytime:  \x1b[1mundo rollback\x1b[0m");
+    println!("  reverse the last session anytime:  \x1b[1mwalkback rollback\x1b[0m");
     Ok(())
 }
 
-/// `undo unprotect` — remove the hook this tool installed.
+/// `walkback unprotect` — remove the hook this tool installed.
 fn cmd_unprotect() -> io::Result<()> {
     let cwd = env::current_dir()?;
     let root = Undo::discover(&cwd)?
@@ -464,16 +464,16 @@ fn cmd_unprotect() -> io::Result<()> {
     if removed {
         write_json(&settings_path, &settings)?;
         println!(
-            "\x1b[32m✓\x1b[0m undo hook removed from {}",
+            "\x1b[32m✓\x1b[0m walkback hook removed from {}",
             settings_path.display()
         );
     } else {
-        println!("nothing to remove (no undo hook found)");
+        println!("nothing to remove (no walkback hook found)");
     }
     Ok(())
 }
 
-/// `undo hook` — invoked by Claude Code before each tool runs. Reads the
+/// `walkback hook` — invoked by Claude Code before each tool runs. Reads the
 /// PreToolUse JSON on stdin and, once per session, checkpoints + snapshots the
 /// project so the whole session is reversible. It NEVER blocks the agent: any
 /// error is logged and we still exit 0.
@@ -481,7 +481,7 @@ fn cmd_hook() -> io::Result<()> {
     let mut input = String::new();
     let _ = io::stdin().read_to_string(&mut input);
     if let Err(e) = run_hook(&input) {
-        eprintln!("undo hook (non-fatal): {e}");
+        eprintln!("walkback hook (non-fatal): {e}");
     }
     Ok(()) // exit 0 — the agent always proceeds
 }
@@ -598,11 +598,11 @@ fn notify_err(e: notify::Error) -> io::Error {
 
 fn print_help() {
     println!(
-        "\x1b[1mundo\x1b[0m — Ctrl-Z for AI agents\n\n\
+        "\x1b[1mwalkback\x1b[0m — Undo anything your AI agent does\n\n\
          USAGE\n\
-         \x20 undo <command> [args]\n\n\
+         \x20 walkback <command> [args]\n\n\
          COMMANDS\n\
-         \x20 init                     set up undo in this directory\n\
+         \x20 init                     set up walkback in this directory\n\
          \x20 checkpoint [label]       mark a point you can rewind to\n\
          \x20 track <path>...          capture a file before the agent changes it\n\
          \x20 status                   what's changed since the last checkpoint\n\

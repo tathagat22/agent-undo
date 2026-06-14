@@ -1,15 +1,15 @@
 [package]
-name = "undo-napi"
+name = "walkback-napi"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "NAPI bridge exposing the undo-core engine to Node/TypeScript."
+description = "NAPI bridge exposing the walkback-core engine to Node/TypeScript."
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-undo-core = { path = "../undo-core" }
+walkback-core = { path = "../walkback-core" }
 napi = { version = "2", default-features = false, features = ["napi6"] }
 napi-derive = "2"
 serde_json.workspace = true

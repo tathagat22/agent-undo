@@ -1,24 +1,24 @@
 [package]
-name = "undo-core"
+name = "walkback-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Ctrl-Z for AI agents — a universal, reversible side-effect time machine with a CLI (`undo`)."
-homepage = "https://github.com/tathagat22/agent-undo"
-documentation = "https://docs.rs/undo-core"
+description = "Undo anything your AI agent does — a universal, reversible side-effect time machine with a CLI (`walkback`)."
+homepage = "https://github.com/tathagat22/walkback"
+documentation = "https://docs.rs/walkback-core"
 readme = "README.md"
 keywords = ["ai", "agents", "undo", "rollback", "cli"]
 categories = ["command-line-utilities", "development-tools", "filesystem"]
 rust-version = "1.74"
 
 [lib]
-name = "undo_core"
+name = "walkback_core"
 path = "src/lib.rs"
 
 [[bin]]
-name = "undo"
-path = "src/bin/undo.rs"
+name = "walkback"
+path = "src/bin/walkback.rs"
 
 [dependencies]
 serde.workspace = true

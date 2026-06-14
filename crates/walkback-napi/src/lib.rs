@@ -1,11 +1,11 @@
-//! NAPI bridge: the Rust `undo-core` engine, callable in-process from
+//! NAPI bridge: the Rust `walkback-core` engine, callable in-process from
 //! TypeScript. The MCP server and any Node tooling drive the engine through
 //! these functions — no subprocess, no IPC. Structured results cross the
 //! boundary as JSON strings to keep the ABI small and stable.
 
 use napi_derive::napi;
 use std::path::Path;
-use undo_core::{Effect, HttpCompensator, Undo};
+use walkback_core::{Effect, HttpCompensator, Undo};
 
 fn err<E: std::fmt::Display>(e: E) -> napi::Error {
     napi::Error::from_reason(e.to_string())

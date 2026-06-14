@@ -1,13 +1,13 @@
 #!/bin/sh
-# Install the `undo` CLI — Ctrl-Z for AI agents.
+# Install the `undo` CLI — Undo anything your AI agent does.
 #
-#   curl -fsSL https://raw.githubusercontent.com/tathagat22/agent-undo/main/packaging/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/tathagat22/walkback/main/packaging/install.sh | sh
 #
 # Downloads the prebuilt binary for your platform from the latest GitHub
 # Release. No Rust toolchain required. Override with: VERSION=v0.1.0 sh install.sh
 set -eu
 
-REPO="tathagat22/agent-undo"
+REPO="tathagat22/walkback"
 BIN="undo"
 INSTALL_DIR="${UNDO_INSTALL_DIR:-$HOME/.local/bin}"
 

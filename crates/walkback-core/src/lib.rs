@@ -1,5 +1,5 @@
-//! `undo-core` — the reversible side-effect engine behind `undo`,
-//! "Ctrl-Z for AI agents".
+//! `walkback-core` — the reversible side-effect engine behind `undo`,
+//! "Undo anything your AI agent does".
 //!
 //! The model is small on purpose:
 //!   - [`Effect`] is a change paired with how to reverse it.

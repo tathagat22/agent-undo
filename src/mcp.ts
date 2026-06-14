@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The `undo` MCP server — Ctrl-Z for AI agents.
+// The `undo` MCP server — Undo anything your AI agent does.
 //
 // An agent checkpoints itself before acting, tracks each path it's about to
 // change (files or whole directories), and records network mutations. If

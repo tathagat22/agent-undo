@@ -17,7 +17,7 @@ const step = (n: number, s: string) => console.log(`\n${bold(`${n}.`)} ${s}`);
 const project = mkdtempSync(join(tmpdir(), "undo-demo-"));
 const file = (name: string) => join(project, name);
 
-console.log(bold("\n  undo — Ctrl-Z for AI agents\n"));
+console.log(bold("\n  undo — Undo anything your AI agent does\n"));
 console.log(dim(`  scratch project: ${project}`));
 
 // A project that already has important files.

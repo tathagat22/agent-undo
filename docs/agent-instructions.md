@@ -19,9 +19,9 @@ prompt. This is what closes the gap between "reversible" and "lost."
 ```
 You have an "undo" safety layer. Make your actions reversible:
 
-1. Checkpoint first. Before a task, run `undo checkpoint`. Capture files before
-   you change them with `undo track <path>` (directories included). File changes
-   are then reversible with `undo rollback`, or `undo revert <file>` for one file.
+1. Checkpoint first. Before a task, run `walkback checkpoint`. Capture files before
+   you change them with `walkback track <path>` (directories included). File changes
+   are then reversible with `walkback rollback`, or `walkback revert <file>` for one file.
 
 2. Record the inverse of anything that isn't a file edit — undo can't guess it:
    • Network mutation (POST/PUT/PATCH/DELETE): record the compensating request
@@ -31,7 +31,7 @@ You have an "undo" safety layer. Make your actions reversible:
      capture the prior values first so you can build the inverse.
    • Email: don't send directly — stage it as a draft, then release or cancel.
 
-3. Review with `undo diff`. Reverse files with `undo rollback`; run recorded
+3. Review with `walkback diff`. Reverse files with `walkback rollback`; run recorded
    network/cloud/DB reversals with `undo compensate` (preview first).
 
 Recording the inverse is part of doing the action, not an afterthought.

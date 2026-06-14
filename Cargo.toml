@@ -1,15 +1,15 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/undo-core",
-    "crates/undo-napi",
+    "crates/walkback-core",
+    "crates/walkback-napi",
 ]
 
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/tathagat22/agent-undo"
+repository = "https://github.com/tathagat22/walkback"
 
 [profile.release]
 strip = true

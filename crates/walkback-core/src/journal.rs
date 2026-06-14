@@ -818,7 +818,7 @@ impl Undo {
             next.push('\n');
         }
         next.push_str(
-            "# agent-undo: snapshots of your files (may contain secrets) — never commit\n.undo/\n",
+            "# walkback: snapshots of your files (may contain secrets) — never commit\n.undo/\n",
         );
         let _ = fs::write(&gi, next); // best-effort; never fail init over this
     }

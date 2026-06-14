@@ -9,7 +9,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use undo_core::Undo;
+use walkback_core::Undo;
 
 /// A small, deterministic PRNG so failures reproduce from their seed.
 struct Rng(u64);

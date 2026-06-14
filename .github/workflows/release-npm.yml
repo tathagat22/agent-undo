@@ -1,12 +1,12 @@
 name: Release npm
 
 # Builds the native NAPI engine for every platform and publishes the npm
-# packages (so `npm i @agent-undo/core` needs no Rust toolchain). Follows the
+# packages (so `npm i @walkback/core` needs no Rust toolchain). Follows the
 # canonical napi-rs release flow: build per target -> collect artifacts ->
 # `npm publish` (the package's prepublishOnly hook runs `napi prepublish`, which
 # publishes the per-platform packages and wires up optionalDependencies).
 #
-# Requires repo secret NPM_TOKEN and the `@agent-undo` npm org (see RELEASING.md).
+# Requires repo secret NPM_TOKEN and the `@walkback` npm org (see RELEASING.md).
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     defaults:
       run:
-        working-directory: crates/undo-napi
+        working-directory: crates/walkback-napi
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.target }}
-          path: crates/undo-napi/*.node
+          path: crates/walkback-napi/*.node
           if-no-files-found: error
 
   publish:
@@ -65,28 +65,28 @@ jobs:
       - name: Download all built addons
         uses: actions/download-artifact@v4
         with:
-          path: crates/undo-napi/artifacts
+          path: crates/walkback-napi/artifacts
 
       # create-npm-dir makes the npm/<platform> dirs; artifacts moves each .node in.
       - name: Collect artifacts into platform packages
-        working-directory: crates/undo-napi
+        working-directory: crates/walkback-napi
         run: |
           npx napi create-npm-dir -t .
           npx napi artifacts --dir artifacts
           ls -R npm
 
       # `npm publish` triggers prepublishOnly -> `napi prepublish`, which publishes
-      # @agent-undo/engine-<platform> (with --access public) and updates this
-      # package's optionalDependencies, then publishes @agent-undo/engine itself.
-      - name: Publish @agent-undo/engine (+ platform packages)
-        working-directory: crates/undo-napi
+      # @walkback/engine-<platform> (with --access public) and updates this
+      # package's optionalDependencies, then publishes @walkback/engine itself.
+      - name: Publish @walkback/engine (+ platform packages)
+        working-directory: crates/walkback-napi
         run: npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The MCP server package depends on @agent-undo/engine published above.
-      - name: Publish @agent-undo/core
+      # The MCP server package depends on @walkback/engine published above.
+      - name: Publish @walkback/core
         run: |
           npm run build
           npm publish --access public

@@ -1,16 +1,16 @@
 {
-  "name": "@agent-undo/engine",
+  "name": "@walkback/engine",
   "version": "0.2.0",
   "description": "NAPI-built native binding to the Rust undo engine.",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "MIT",
-  "repository": "https://github.com/tathagat22/agent-undo",
+  "repository": "https://github.com/tathagat22/walkback",
   "publishConfig": {
     "access": "public"
   },
   "napi": {
-    "name": "undo-engine",
+    "name": "walkback-engine",
     "triples": {
       "defaults": true,
       "additional": [
