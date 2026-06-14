@@ -1,5 +1,5 @@
 {
-  "name": "@walkback/core",
+  "name": "walkback",
   "version": "0.2.1",
   "description": "Undo anything your AI agent does. A universal time machine that records every side effect an autonomous agent produces — file writes, shell commands, git state, HTTP mutations — and reverses them with one command.",
   "type": "module",
@@ -17,7 +17,7 @@
     "claude"
   ],
   "bin": {
-    "undo-mcp": "dist/mcp.js"
+    "walkback-mcp": "dist/mcp.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,7 +38,7 @@
     "crates/walkback-napi"
   ],
   "scripts": {
-    "build:engine": "npm run build --workspace @walkback/engine",
+    "build:engine": "npm run build --workspace walkback-engine",
     "build": "tsc",
     "mcp": "tsx src/mcp.ts",
     "demo": "tsx demo/demo.ts",
@@ -46,7 +46,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@walkback/engine": "0.2.1",
+    "walkback-engine": "0.2.1",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "zod": "^3.23.8"
   },

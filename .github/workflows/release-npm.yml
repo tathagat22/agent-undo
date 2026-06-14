@@ -1,7 +1,7 @@
 name: Release npm
 
 # Builds the native NAPI engine for every platform and publishes the npm
-# packages (so `npm i @walkback/core` needs no Rust toolchain). Follows the
+# packages (so `npm i walkback` needs no Rust toolchain). Follows the
 # canonical napi-rs release flow: build per target -> collect artifacts ->
 # `npm publish` (the package's prepublishOnly hook runs `napi prepublish`, which
 # publishes the per-platform packages and wires up optionalDependencies).
@@ -76,17 +76,17 @@ jobs:
           ls -R npm
 
       # `npm publish` triggers prepublishOnly -> `napi prepublish`, which publishes
-      # @walkback/engine-<platform> (with --access public) and updates this
-      # package's optionalDependencies, then publishes @walkback/engine itself.
-      - name: Publish @walkback/engine (+ platform packages)
+      # walkback-engine-<platform> (with --access public) and updates this
+      # package's optionalDependencies, then publishes walkback-engine itself.
+      - name: Publish walkback-engine (+ platform packages)
         working-directory: crates/walkback-napi
         run: npm publish --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # The MCP server package depends on @walkback/engine published above.
-      - name: Publish @walkback/core
+      # The MCP server package depends on walkback-engine published above.
+      - name: Publish walkback
         run: |
           npm run build
           npm publish --access public

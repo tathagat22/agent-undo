@@ -36,6 +36,6 @@ export interface UndoEngine {
   diffJson(workdir: string): string;
 }
 
-const engine = require("@walkback/engine") as UndoEngine;
+const engine = require("walkback-engine") as UndoEngine;
 
 export default engine;

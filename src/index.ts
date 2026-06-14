@@ -1,6 +1,6 @@
 // Programmatic entry point. Import the typed Rust engine directly:
 //
-//   import undo from "@walkback/core";
+//   import undo from "walkback";
 //   undo.init(process.cwd());
 //   undo.checkpoint(process.cwd(), "before agent");
 //

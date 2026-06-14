@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/tathagat22/walkback/actions/workflows/ci.yml"><img src="https://github.com/tathagat22/walkback/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://www.npmjs.com/package/@walkback/core"><img src="https://img.shields.io/npm/v/@walkback/core?label=npm&color=cb3837" alt="npm"></a>
+  <a href="https://www.npmjs.com/package/walkback"><img src="https://img.shields.io/npm/v/walkback?label=npm&color=cb3837" alt="npm"></a>
   <a href="https://crates.io/crates/walkback-core"><img src="https://img.shields.io/crates/v/walkback-core?label=crates.io&color=e6a141" alt="crates.io"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6366f1" alt="MIT"></a>
   <a href="https://tathagat22.github.io/walkback/"><img src="https://img.shields.io/badge/docs-site-22d3ee" alt="docs"></a>
@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/tathagat22/walkback/main/packaging/
 The **MCP server** (for MCP clients like Cursor / Claude):
 
 ```bash
-npx -y @walkback/core
+npx -y walkback
 ```
 
 ## What it reverses
@@ -132,7 +132,7 @@ walkback protect / unprotect       install / remove the Claude Code auto-capture
 Add to your MCP client's config (e.g. `.mcp.json`):
 
 ```json
-{ "mcpServers": { "undo": { "command": "npx", "args": ["-y", "@walkback/core"] } } }
+{ "mcpServers": { "undo": { "command": "npx", "args": ["-y", "walkback"] } } }
 ```
 
 **16 tools:** `undo_init` · `undo_checkpoint` · `undo_track` · `undo_status` · `undo_diff` · `undo_log` · `undo_rollback` · `undo_revert` · `undo_redo` · `undo_record_http` · `undo_record_reversal` · `undo_compensate` · `undo_email_stage` · `undo_email_release` · `undo_email_cancel` · `undo_email_pending`
